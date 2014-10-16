@@ -1,0 +1,65 @@
+{smcl}
+{* *! version 1.0.0  22May2006}{...}
+{cmd:help wbscalar} 
+{hline}
+
+{title:Title}
+
+{p2colset 5 20 22 2}{...}
+{p2col :{hi:wbscalar} {hline 2}}write a WinBUGS list of scalars{p_end}
+{p2colreset}{...}
+
+{title:Syntax}
+
+{phang2}
+{cmd:wbscalar}
+{cmd:,} {opt sc:alars(string)} [ {it:options} ]
+
+{col 8}{it:options}{col 32}description
+{col 8}{hline 72}
+{col 8}{cmdab:sc:alars(}{it:string}{cmd:)}{col 32}list of scalars
+{col 8}{cmdab:f:ormat(}{it:string}{cmd:)}{col 32}output formats
+{col 8}{cmdab:s:aving(}{it:string,replace}{cmd:)}{col 32}text file for output
+{col 8}{cmdab:l:inesize(}{it:#}{cmd:)}{col 32}values per line of output
+{col 8}{cmdab:nop:rint}{col 32}suppress display to the results window
+{col 8}{hline 72}
+
+{title:Description}
+{pstd}
+{cmd:wbscalar} writes the selected scalars to the results window and/or a text file 
+as an R (S-Plus) list ready to be read into WinBUGS. Likely to be used for specifying 
+initial values or within {help wbdata}.
+
+{title:Options}
+{phang}{opt sc:alars(string)}
+the list of scalars.
+
+{phang}{opt f:ormat(string)}
+format used for writing the data. 
+The default is %8.3f. Formats cycle so that (%4.0f %3.1f) 
+would write the data using %4.0f %3.1f %4.0f ...
+
+{phang}{opt s:aving(string,replace)}
+text filename for file
+output. Replace is necessary if the file already exists.
+
+{phang}{opt l:inesize(#)}
+maximum number of values on a line. Default 5.
+
+{phang}{opt nop:rint}
+suppresses display in the results window.
+
+{title:Example}
+{phang}	{cmd:. scalar a = 1} {p_end}
+{phang}	{cmd:. scalar b = 3.42} {p_end}
+{phang}	{cmd:. wbscalar , sca(a b) format(%4.0f %6.1f)} {p_end}
+would produce
+{phang}  list( a=   1, b=   3.4) {p_end}
+
+{title:Reference}
+{phang}The WinBUGS Manual is available from {browse www.mrc-bsu.cam.ac.uk/bugs}. 
+See {help winbugs} for a list of all of the commands for running WinBUGS from Stata.
+
+{title:Author}
+{phang} John Thompson, Department of Health Sciences, 
+University of Leicester. Please report any errors to {browse "mailto:john.thompson@le.ac.uk":john.thompson@le.ac.uk}.

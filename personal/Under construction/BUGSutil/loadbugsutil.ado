@@ -1,0 +1,5 @@
+run "C:\ado\personal\Under construction\BUGSutil\bugsscript.do"
+run "C:\ado\personal\Under construction\BUGSutil\bugsrun.do"
+run "C:\ado\personal\Under construction\BUGSutil\bugsreadlog.do"
+run "C:\ado\personal\Under construction\BUGSutil\bugsfindexec.do"
+run "C:\ado\personal\Under construction\BUGSutil\bugsdata.do"

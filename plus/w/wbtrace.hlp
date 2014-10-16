@@ -1,0 +1,79 @@
+{smcl}
+{* *! version 1.0.0  22May2006}{...}
+{cmd:help wbtrace} 
+{hline}
+
+{title:Title}
+
+{p2colset 5 20 22 2}{...}
+{p2col :{hi:wbtrace} {hline 2}}time-series plots of an MCMC run{p_end}
+{p2colreset}{...}
+
+{title:Syntax}
+
+{phang2}
+{cmd:wbtrace}
+{varlist} 
+{ifin}
+[{cmd:,} {it:options} ]
+
+{col 8}{it:options}{col 32}description
+{col 8}{hline 72}
+{col 8}{cmdab:th:in(}{it:#}{cmd:)}{col 32}plot every {it:#}th value
+{col 8}{cmdab:o:rder(}{it:varname}{cmd:)}{col 32}variable giving the ordering of simulations
+{col 8}{cmdab:bych:ain(}{it:varname}{cmd:)}{col 32}variable identifying the chain
+{col 8}{cmdab:over:lay}{col 32}request parallel chains are overlayed
+{col 8}{cmdab:g:options(}{it:string}{cmd:)}{col 32}graphics options for the individual plots
+{col 8}{cmdab:cg:options(}{it:string}{cmd:)}{col 32}options combining plot
+{col 8}{cmdab:s:aving(}{it:string,replace}{cmd:)}{col 32}graphics file (.gph) for the final plot
+{col 8}{cmdab:e:xport(}{it:string,replace}{cmd:)}{col 32}graphics file with non-standard formats
+{col 8}{hline 72}
+
+{title:Description}
+{pstd}
+{cmd:wbtrace} produces a trace or history plot of MCMC simulations. {cmd:wbtrace} plots the 
+consecutive values from an MCMC run as a time-series. It also shows the median and 95% credible interval. 
+If more than one variable is specified then the separate plots will be combined and placed next to 
+or above one another. If there is more than one chain they can either be plotted separately or 
+overlayed so that they will appear superimposed on the same plot.
+
+{title:Options}
+{phang}{opt thin(#)}
+thin the plot by only showing every nth value. Default no thinning.
+
+{phang}{opt o:rder(varname)}
+gives the variable denoting the order of simulations within each chain. 
+If not stated they are numbered 1,2,3... in the order they occur in the dataset. 
+
+{phang}{opt over:lay}
+used together with bychain to request that the traces from each chain to be overlayed on a single plot.
+
+{phang}{opt g:options(string)}
+graphics options for plotting of each series. 
+
+{phang}{opt cg:options(string)}
+combine graph options to control the combining of the plots. 
+
+{phang}{opt bych:ain(varname)}
+name of a variable containing the chain number for multichain
+MCMC runs. 
+
+{phang}{opt s:aving(string,replace)}
+filename for saving the final plot.
+
+{phang}{opt e:xport(string,replace)}
+filename for exporting the final plot in a non-standard format such as eps or png.
+
+{title:Example}
+{phang}	{cmd:. wbtrace  x y, thin(10) g(scheme(s2mono)) cg(row(2))}{p_end}
+{phang} {cmd:. wbtrace alpha beta, cg(row(2))}{p_end}
+{phang} {cmd:. wbtrace alpha, bychain(id) overlay}{p_end}
+{phang} {cmd:. wbtrace alpha, bychain(id) cg(row(3))}{p_end}
+
+{title:Reference}
+{phang}The WinBUGS Manual is available from {browse www.mrc-bsu.cam.ac.uk/bugs}. 
+See {help winbugs} for a list of all of the commands for running WinBUGS from Stata.
+
+{title:Author}
+{phang} John Thompson, Department of Health Sciences, 
+University of Leicester. Please report any errors to {browse "mailto:john.thompson@le.ac.uk":john.thompson@le.ac.uk}.

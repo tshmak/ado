@@ -1,0 +1,47 @@
+{smcl}
+{* *! version 1.0.0  22May2006}{...}
+{cmd:help wbgeweke} 
+{hline}
+
+{title:Title}
+
+{p2colset 5 20 22 2}{...}
+{p2col :{hi:wbgeweke} {hline 2}}compare means of early and late sections of a chain{p_end}
+{p2colreset}{...}
+
+{title:Syntax}
+
+{phang2}
+{cmd:wbgeweke}
+{varlist} 
+{ifin}
+[ {cmd:,} {it:options} ]
+
+{col 8}{it:options}{col 32}description
+{col 8}{hline 72}
+{col 8}{cmdab:p:ercentages(}{it:string}{cmd:)}{col 32}percentages in the early and late sections
+{col 8}{hline 72}
+
+{title:Description}
+{pstd}
+{cmd:wbgeweke} is a version of the geweke convergence test that uses {help prais}
+regression to estimate the standard errors. The test compares the mean of the early part of a chain
+(default 10%) with the mean of the late part of a chain (default 50%). Means, st errors and p-values returned.
+{cmd:wbgeweke} is byable, which makes it easy to analyse multple chains.
+
+{title:Options}
+{phang}{opt p:ercentages(string)}
+the percentages in the early and late sections. Default "10 50".
+
+{title:Examples}
+{phang}	{cmd:. wbgeweke alpha beta, p(20 40)} {p_end}
+{phang}	{cmd:. sort chain order} {p_end}
+{phang}	{cmd:. by chain: wbgeweke alpha beta} {p_end}
+
+{title:Reference}
+{phang}The WinBUGS Manual is available from {browse www.mrc-bsu.cam.ac.uk/bugs}. 
+See {help winbugs} for a list of all of the commands for running WinBUGS from Stata.
+
+{title:Author}
+{phang} John Thompson, Department of Health Sciences, 
+University of Leicester. Please report any errors to {browse "mailto:john.thompson@le.ac.uk":john.thompson@le.ac.uk}.

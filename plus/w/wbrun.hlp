@@ -1,0 +1,55 @@
+{smcl}
+{* *! version 1.0.0  22May2006}{...}
+{cmd:help wbrun} 
+{hline}
+
+{title:Title}
+
+{p2colset 5 20 22 2}{...}
+{p2col :{hi:wbrun} {hline 2}}runs WinBUGS from within Stata{p_end}
+{p2colreset}{...}
+
+{title:Syntax}
+
+{phang2}
+{cmd:wbrun}
+{cmd:,} {opt s:cript(string)} {opt w:inbugs(string)} [ batch ]
+
+{col 8}{it:options}{col 32}description
+{col 8}{hline 72}
+{col 8}{cmdab:s:cript(}{it:string}{cmd:)}{col 32}script file with path
+{col 8}{cmdab:w:inbugs(}{it:string}{cmd:)}{col 32}winbugs executable with path
+{col 8}{cmdab:b:atch}{col 32}run in the batckground
+{col 8}{hline 72}
+
+{title:Description}
+{pstd}
+{cmd:wbrun} runs a script in WinBUGS. If the script ends with quit() then WinBUGS closes 
+after the script has executed and control is returned to Stata. Without quit() in the 
+script file, WinBUGS remains open and may be used interactively. When eventually closed, 
+control will return to Stata.
+
+{title:Options}
+{phang}
+{opt script(string)}
+name of the script file with its full path
+
+{phang}
+{opt winbugs(string)}
+Winbugs executable with full path
+
+{phang}
+{opt batch}
+Run WinBUGS in the background returning control to Stata while the program executes.
+The default is for Stata to wait for WinBUGS to finish before becoming active.
+
+{title:Example}
+{phang}{cmd:. wbrun , script(d:/mydata/model1.txt) w(c:/program files/winbugs14.exe)}{p_end}
+
+{title:Reference}
+{phang}The WinBUGS Manual is available from {browse www.mrc-bsu.cam.ac.uk/bugs}. 
+See {help winbugs} for a list of all of the commands for running WinBUGS from Stata.
+
+{title:Author}
+{phang} John Thompson, Department of Health Sciences, 
+University of Leicester. Please report any errors to {browse "mailto:john.thompson@le.ac.uk":john.thompson@le.ac.uk}.

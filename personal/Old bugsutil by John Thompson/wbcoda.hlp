@@ -1,0 +1,90 @@
+{smcl}
+{* *! version 1.0.0  22May2006}{...}
+{cmd:help wbcoda} 
+{hline}
+
+{title:Title}
+
+{p2colset 5 20 22 2}{...}
+{p2col :{hi:wbcoda} {hline 2}}read Coda files created by WinBUGS into Stata{p_end}
+{p2colreset}{...}
+
+{title:Syntax}
+
+{phang2}
+{cmd:wbcoda}
+{cmd:,} {opt r:oot(string)} {opt clear:} [ {it:options} ]
+
+{col 8}{it:options}{col 32}description
+{col 8}{hline 72}
+{col 8}{cmdab:r:oot(}{it:string}{cmd:)}{col 32}full root of coda file names
+{col 8}{cmdab:clear:}{col 32}permission to overwrite existing data
+{col 8}{cmdab:i:d(}{it:varname}{cmd:)}{col 32}name for the chain id variable
+{col 8}{cmdab:ch:ains(}{it:#}{cmd:)}{col 32}number of chains or chain number
+{col 8}{cmdab:m:ultichain}{col 32}read multiple chains
+{col 8}{cmdab:th:in(}{it:#}{cmd:)}{col 32}only read every {it:#}th value
+{col 8}{cmdab:k:eep(}{it:string}{cmd:)}{col 32}parameters to keep
+{col 8}{cmdab:nor:eshape}{col 32}leave all parameters in a single variable
+{col 8}{hline 72}
+
+{title:Description}
+{pstd}
+{cmd:wbcoda} reads data from WinBUGS coda files into Stata.
+The variable names are
+taken from the Index file and the values from the data file(s). 
+{it:Any existing data in Stata will be lost so you must specify the clear option}. WinBUGS 
+programmers often used a full stop
+in the variable name as in y.sigma this would be changed to y_sigma in Stata. When
+vectors of parameters are saved the names are also editted so that alpha[2] would become 
+alpha_2 in Stata.
+
+{title:Options}
+{phang}{opt r:oot(string)}
+root (including the full path) of the Index and data file names. 
+WinBugs creates a data file called <root>1.txt and an index file <root>Index.txt 
+depending on the root specified in the WinBUGS script. 
+
+{phang}{opt clear:}
+permission to clear current data - NOT optional
+
+{phang}{opt c:hains(#)}
+The total number of chains (when {cmd:multichain} is specified) or the number of
+the chain to be read (when {cmd:multichain} is not specified) 
+
+{phang}{opt i:d(varname)}
+Name for the variable containing the chain number
+when the multichain option is specified. If omitted the chain number will go into a variable
+called 'chain'.
+
+{phang}{opt m:ultichain}
+If specified multiple chains are read, in which case {cmd:chain}
+gives the total number of chains. Chains are distinguished by a variable
+called named by the {cmd: id} option containing an indicator, 1,2,3...
+
+{phang}{opt th:in(#)}
+read every nth value.
+
+{phang}{opt k:eep(string)}
+parameters to keep. The string is expanded in the same way as a {it:newvarlist}.
+
+{phang}{opt nor:eshape}
+leave the simulated values stacked in a single variable instead of reshaping them into separate 
+variables for each parameter.
+
+{title:Examples}
+with data in d:/mydata/test1.txt
+{phang}	{cmd:. wbcoda , root("d:/mydata/test") } {p_end}
+
+read chain 2 from 3 chains of data in test1.txt test2.txt test3.txt
+{phang}	{cmd:. wbcoda , root("d:/mydata/test") chain(2) } {p_end}
+
+read all chains of data from test1.txt test2.txt test3.txt    
+{phang}	{cmd:. wbcoda , root("d:/mydata/test")  chain(3) multichain } {p_end}
+
+{title:Reference}
+{phang}The WinBUGS Manual is available from {browse www.mrc-bsu.cam.ac.uk/bugs}. 
+See {help winbugs} for a list of all of the commands for running WinBUGS from Stata.
+
+{title:Author}
+{phang} John Thompson, Department of Health Sciences, 
+University of Leicester. Please report any errors to {browse "mailto:john.thompson@le.ac.uk":john.thompson@le.ac.uk}.

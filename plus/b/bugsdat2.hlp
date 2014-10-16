@@ -1,0 +1,93 @@
+.-
+help for ^bugsdat2^
+.-
+
+
+^Syntax^
+------
+^bugsdat2^ [varlist]  [, ^n^obs ^na^rray ^c^onst(string) ^ar^ray(varlist) 
+			^wi^dth(#) ^f^ormat(string) ^l^inesize(#) ^file^(filename) ^replace^]
+
+
+^Description^
+-----------
+bugsdat2 exports data from Stata in the format required by BUGS or WinBUGS.
+The command is particularly helpful for running Monte Carlo simulations of 
+BUGS analysis called from within Stata.
+
+You can call BUGS from within Stata using:
+
+ ! "c:\Program Files\WinBUGS14\WinBUGS14.exe" /PAR "d:/work/script.odc"
+
+where "c:\Program Files\WinBUGS14\WinBUGS14.exe" should be wherever your 
+version of BUGS is installed and "d:/work/script.odc" should be a BUGS .odc 
+batch file that specifies or points to the model, initial values, etc.
+
+bugsdat2 is heavily based on bugsdat written by Adrian Mander, and uses much of the 
+code in Adrian Mander's original. Gratefully acknowledged and used with permission.
+
+
+^Options^
+-------
+
+^n^obs			adds the number of observations in the dataset to the output as "N=#".
+
+^na^rray 		adds the width of any array to the output as a constant "Narrayname=#".
+
+^c^onst(string)		allows addition of constants to the output dataset, e.g. "mu=10", 
+			or any other text you want to add.
+
+^ar^ray(varlist)	adds arrays to bugs output. In Stata the variable names must be in the
+			format varname1, varname2, ... , varname# with the same varname for each.
+
+^wi^dth(#)		specifies the number of observations to be placed on each line
+			of output.
+
+^f^ormat(string)	allows the format of the output to be altered using standard Stata syntax.
+			You can specify the number of decimal places using e.g. %10.6f etc.
+
+^l^inesize(#)		allows the length of the lines to be altered. Sometimes with large 
+			datasets the lines wrap round giving ">" wrapping symbols that 
+			BUGS does not recognise. Changing this can avoid this problem.
+
+^file^(filename)	gives the name of the output BUGS dataset. The default is "bugs.dat" 
+			placed in the working directory.
+
+^replace^		specifies that you don't mind Stata replacing an existing dataset with 
+			the new one if one with the same name already exists.
+
+
+^Examples^
+--------
+
+bugsdat2 a b, nobs narray array(c) const(" mu=0, mu2= c(0,0), ") file("d:\work\data.dat") replace
+
+bugsdat2 a b, nobs width(10) format(%11.8f) linesize(200)
+! "c:\Program Files\WinBUGS14\WinBUGS14.exe" /PAR "d:/work/script.odc"
+bugsres, file("d:\work\results.txt") clear
+
+More examples can be found at www.personal.leeds.ac.uk/~hssdg/Stata
+
+
+^Reference^
+---------
+The WinBUGS manual is available from www.mrc-bsu.cam.ac.uk/bugs
+
+
+^See also^
+--------
+bugsres, bugsout2 
+
+
+^Author^
+------
+Darren Greenwood
+Biostatistics Unit
+Centre for Epidemiology & Biostatistics
+University of Leeds
+30-32 Hyde Terrace
+Leeds
+LS2 9LN
+UK
+
+Email: d.c.greenwood@leeds.ac.uk

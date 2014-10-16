@@ -1,0 +1,53 @@
+{smcl}
+{* *! version 1.0.0  22May2006}{...}
+{cmd:help wbstats} 
+{hline}
+
+{title:Title}
+
+{p2colset 5 20 22 2}{...}
+{p2col :{hi:wbstats} {hline 2}}summary statistics for an MCMC run{p_end}
+{p2colreset}{...}
+
+{title:Syntax}
+
+{phang2}
+{cmd:wbstats}
+{varlist} 
+{ifin}
+[{cmd:,} {it:options} ]
+
+{col 8}{it:options}{col 32}description
+{col 8}{hline 72}
+{col 8}{cmdab:h:pd}{col 32}Highest Posterior Density intervals
+{col 8}{cmdab:l:evel(}{it:#}{cmd:)}{col 32}percentage for the interval estimates
+{col 8}{hline 72}
+
+{help by} may be used with wbstats
+
+{title:Description}
+{pstd}
+{cmd:wbstats} writes a table summarising the MCMC results stored in {cmd:varlist} including
+the number of observations, mean, standard deviation, standard error, median and 
+credible interval. The standard error is calculated using {help prais} regression. 
+wbstats is byable and returns the summary statistics.
+
+{title:Options}
+{phang}{opt hpd} 
+highest posterior density intervals rather than credibility intervals.
+
+{title:Options}
+{phang}{opt level(#)} 
+percentage level for the interval estimates. Default 95%.
+
+{title:Examples}
+	{inp:. wbstats x y z}
+	{inp:. by chain, sort: wbstats x y z}
+
+{title:Reference}
+{phang}The WinBUGS Manual is available from {browse www.mrc-bsu.cam.ac.uk/bugs}. 
+See {help winbugs} for a list of all of the commands for running WinBUGS from Stata.
+
+{title:Author}
+{phang} John Thompson, Department of Health Sciences, 
+University of Leicester. Please report any errors to {browse "mailto:john.thompson@le.ac.uk":john.thompson@le.ac.uk}.

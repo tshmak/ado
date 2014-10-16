@@ -1,0 +1,73 @@
+{smcl}
+{* *! version 1.0.0  22May2006}{...}
+{cmd:help wbintervals} 
+{hline}
+
+{title:Title}
+
+{p2colset 5 20 22 2}{...}
+{p2col :{hi:wbintervals} {hline 2}}interval plots for sections of a chain{p_end}
+{p2colreset}{...}
+
+{title:Syntax}
+
+{phang2}
+{cmd:wbintervals}
+{varlist} 
+{ifin}
+[{cmd:,} {it:options} ]
+
+{col 8}{it:options}{col 32}description
+{col 8}{hline 72}
+{col 8}{cmdab:m:(}{it:#}{cmd:)}{col 32}number of sections within each chain
+{col 8}{cmdab:l:evel(}{it:#}{cmd:)}{col 32}size (percentage) of the interval
+{col 8}{cmdab:bych:ain(}{it:varname}{cmd:)}{col 32}plot by chain rather than by section
+{col 8}{cmdab:g:options(}{it:string}{cmd:)}{col 32}options for the individual plot
+{col 8}{cmdab:cg:options(}{it:string}{cmd:)}{col 32}options combining plot
+{col 8}{cmdab:s:aving(}{it:string,replace}{cmd:)}{col 32}graphics file for output
+{col 8}{cmdab:e:xport(}{it:string,replace}{cmd:)}{col 32}graphics file for a non-standard format
+{col 8}{cmdab:ds:aving(}{it:string,replace}{cmd:)}{col 32}.dta file for plotting points
+{col 8}{hline 72}
+
+{title:Description}
+{pstd}
+{cmd:wbintervals} plots interval estimates for 
+m sections of the chain (solided). For instance, m=3 plots three intervals for the first,
+middle and last thirds of the chain. Intervals are calculated from the appropriate centiles. 
+If varlist contains more than 1 parameter the separate plots are combined. The bychain option
+plots the intervals for multiple parallel chains and superimposes them on the same plot.
+
+{title:Options}
+{phang}{opt m(#)} Number of sections into which the chain is divided (default 10)
+
+{phang}{opt l:evel(#)} percentage for the interval (default 80)
+
+{phang}{opt bych:ain(varname)} gives the chain idenitifer and requests separate densities for each
+chain rather than for sections of one chain.
+
+{phang}{opt g:options(string)}
+{help graph} options for controlling the plots of each set of correlations. 
+
+{phang}{opt cg:options(string)}
+{help graph combine} options to control the combining of the plots. 
+
+{phang}{opt s:aving(string,replace)}
+filename for saving the final plot.
+
+{phang}{opt e:xport(string,replace)}
+filename for exporting the final plot in a non-standard format such as eps or png. 
+The format depends of the choice of file extension, see {help graph export}
+
+{phang}{opt ds:aving(string,replace)}
+Stata data (.dta) file for saving the plotting points.
+
+{title:Example }
+{phang}	{cmd:. wbintervals alpha beta , level(50) } {p_end}
+
+{title:Reference}
+{phang}The WinBUGS Manual is available from {browse www.mrc-bsu.cam.ac.uk/bugs}. 
+See {help winbugs} for a list of all of the commands for running WinBUGS from Stata.
+
+{title:Author}
+{phang} John Thompson, Department of Health Sciences, 
+University of Leicester. Please report any errors to {browse "mailto:john.thompson@le.ac.uk":john.thompson@le.ac.uk}.

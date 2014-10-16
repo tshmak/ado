@@ -1,0 +1,71 @@
+.-
+help for ^bugsout2^
+.-
+
+
+^syntax^
+------
+^bugsout2^ , ^file^(filename1) [^wide^ ^ch^ains(#) ^temp^(filename2)]
+
+
+^Description^
+-----------
+bugsout2 imports Coda from BUGS or WinBUGS into Stata.
+The command is particularly helpful for running Monte Carlo simulations of 
+BUGS analysis called from within Stata.
+
+You can call BUGS from within Stata using:
+ ! "c:\Program Files\WinBUGS14\WinBUGS14.exe" /PAR "d:/work/script.odc"
+where "c:\Program Files\WinBUGS14\WinBUGS14.exe" should be wherever your 
+version of BUGS is installed and "d:/work/script.odc" should be a BUGS .odc 
+batch file that specifies or points to the model, initial values, etc.
+
+bugsout2 is heavily based on bugsout written by Adrian Mander, and uses much of the 
+code in Adrian Mander's original. Gratefully acknowledged and used with permission.
+
+
+^Options^
+-------
+
+^file^(filename)	specifies the stub name of the file containing the coda. 
+			Coda must be output to this filename in the BUGS script
+			using display('log') and coda(*,d:/work/coda) to give 
+			coda1.txt and coda2.txt for two chains for example.
+
+^wide^			specifies that the data will be imported be in wide format.
+
+^chains^(#)		specifies the number of chains run in BUGS.
+
+^temp^(filename2)	can be used to specify the name of temporary files used.
+
+
+^Examples^
+--------
+
+bugsdat2 a b, nobs width(10) format(%11.8f) linesize(200)
+! "c:\Program Files\WinBUGS14\WinBUGS14.exe" /PAR "d:/work/script.odc"
+bugsres, file("d:\work\results.txt") clear
+
+bugsout2, file("d:\work\coda.txt") chains(2)
+
+more examples can be found at www.personal.leeds.ac.uk/~hssdg/Stata
+
+
+^See also^
+--------
+
+bugsdat2, bugsres 
+
+
+^Author^
+------
+Darren Greenwood
+Biostatistics Unit
+Centre for Epidemiology & Biostatistics
+University of Leeds
+30-32 Hyde Terrace
+Leeds
+LS2 9LN
+UK
+
+email: d.c.greenwood@leeds.ac.uk

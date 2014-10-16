@@ -1,0 +1,64 @@
+{smcl}
+{* *! version 1.0.0  22May2006}{...}
+{cmd:help wbvector} 
+{hline}
+
+{title:Title}
+
+{p2colset 5 20 22 2}{...}
+{p2col :{hi:wbvector} {hline 2}}write data as a WinBUGS list of vectors{p_end}
+{p2colreset}{...}
+
+{title:Syntax}
+
+{phang2}
+{cmd:wbvector}
+{varlist} 
+{ifin}
+[{cmd:,} {it:options} ]
+
+{col 8}{it:options}{col 32}description
+{col 8}{hline 72}
+{col 8}{cmdab:f:ormat(}{it:string}{cmd:)}{col 32}output formats
+{col 8}{cmdab:s:aving(}{it:string,replace}{cmd:)}{col 32}text file for output
+{col 8}{cmdab:l:inesize(}{it:#}{cmd:)}{col 32}values per line of output
+{col 8}{cmdab:nop:rint}{col 32}suppress display to the results window
+{col 8}{hline 72}
+
+{title:Description}
+{phang} {cmd:wbvector} writes the variables to the results window and/or a text file 
+as an R (S-Plus) list of vectors ready to be read into WinBUGS. {p_end}
+
+{title:Options}
+{phang}{opt f:ormat(string)}
+format used for writing the data. 
+The default is %8.3f. Formats cycle so that (%4.0f %3.1f) 
+would write the data using %4.0f %3.1f %4.0f ...
+
+{phang}{opt s:aving(string,replace)}
+text filename for file
+output. Replace is necessary if the file already exists.
+
+{phang}{opt l:inesize(#)}
+maximum number of values on a line. Default 5.
+
+{phang}{opt nop:rint}
+suppresses display in the results window.
+
+{title:Example}
+with appropriately defined data
+{phang}	{cmd:. wbvector x1 x2 in 1/5, format(%4.0f %6.1f)} {p_end}
+would produce
+{phang}  list( x1=c( {p_end}
+{phang}   4,  15,  1,  0,  88), {p_end}
+{phang}  x2=c(   {p_end}
+{phang}  34.0,  16.4,  8.0,  10.2,   0.3) {p_end}
+{phang}  ) {p_end}
+
+{title:Reference}
+{phang}The WinBUGS Manual is available from {browse www.mrc-bsu.cam.ac.uk/bugs}. 
+See {help winbugs} for a list of all of the commands for running WinBUGS from Stata.
+
+{title:Author}
+{phang} John Thompson, Department of Health Sciences, 
+University of Leicester. Please report any errors to {browse "mailto:john.thompson@le.ac.uk":john.thompson@le.ac.uk}.

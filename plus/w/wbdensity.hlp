@@ -1,0 +1,80 @@
+{smcl}
+{* *! version 1.0.0  22May2006}{...}
+{cmd:help wbdensity} 
+{hline}
+
+{title:Title}
+
+{p2colset 5 20 22 2}{...}
+{p2col :{hi:wbdensity} {hline 2}}smoothed density estimates of the posterior from an MCMC run{p_end}
+{p2colreset}{...}
+
+{title:Syntax}
+
+{phang2}
+{cmd:wbdensity}
+{varlist} 
+{ifin}
+[{cmd:,} {it:options} ]
+
+{col 8}{it:options}{col 32}description
+{col 8}{hline 72}
+{col 8}{cmdab:l:ow(}{it:string}{cmd:)}{col 32} lower bounds for each parameter
+{col 8}{cmdab:h:igh(}{it:string}{cmd:)}{col 32} higher bounds for each parameter
+{col 8}{cmdab:k:options(}{it:string}{cmd:)}{col 32} options passed directly to {help kdensity}
+{col 8}{cmdab:g:options(}{it:string}{cmd:)}{col 32} options for the individual plot
+{col 8}{cmdab:cg:options(}{it:string}{cmd:)}{col 32} options combining plot
+{col 8}{cmdab:s:aving(}{it:string,replace}{cmd:)}{col 32} graphics file for output
+{col 8}{cmdab:e:xport(}{it:string,replace}{cmd:)}{col 32} file for a non-standard formatted plot
+{col 8}{cmdab:ds:aving(}{it:string,replace}{cmd:)}{col 32}.dta file for the plotting points
+{col 8}{hline 72}
+
+{title:Description}
+{pstd}
+{cmd:wbdensity} Plots the smoothed density estimate from an MCMC chain. This
+command is just a wrapper that calls the stata command {help kdensity}. However it will
+allow bounds to be set. Thus if as the posterior of a standard deviation is known to be positive
+it is possible to get a smooth density that does not allocate probability to negative values by
+setting low=0 and high=. The boundary is imposed by reflecting the data as described in
+Silverman(1986).
+
+{title:Options}
+{phang}{opt l:ow(string)}
+lower bound for each parameter. Missing value means no lower bound. If not specified then 
+no lower boundaries are set.
+
+{phang}{opt h:igh(string)}
+upper bound for each parameter. Missing value means no upper bound. If not specified then 
+no upper boundaries are set.
+
+{phang}{opt k:options(string)}
+options passed directly to {help kdensity}. 
+
+{phang}{opt g:options(string)}
+{help graph} options for controlling the plots of each set of correlations. 
+
+{phang}{opt cg:options(string)}
+{help graph combine} options to control the combining of the plots. 
+
+{phang}{opt s:aving(string,replace)}
+filename for saving the final plot.
+
+{phang}{opt e:xport(string,replace)}
+filename for exporting the final plot in a non-standard format such as eps or png. 
+The format depends of the choice of file extension, see {help graph export}
+
+{phang}{opt ds:aving(string,replace)}
+Stata data (.dta) file for saving the plotting points.
+
+{title:Example}
+{phang}	{cmd:. wbdensity alpha beta, low(0 .) high(1 .) }{p_end}
+
+{title:Reference}
+{phang}The WinBUGS Manual is available from {browse www.mrc-bsu.cam.ac.uk/bugs}. 
+See {help winbugs} for a list of all of the commands for running WinBUGS from Stata.
+Boundary method is described on page 30 of Silverman(1986) {it: Density Estimation} Chapman & Hall.
+
+{title:Author}
+{phang} John Thompson, Department of Health Sciences, 
+University of Leicester. Please report any errors to {browse "mailto:john.thompson@le.ac.uk":john.thompson@le.ac.uk}.
+

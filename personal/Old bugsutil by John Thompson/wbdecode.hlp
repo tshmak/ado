@@ -1,0 +1,67 @@
+{smcl}
+{* *! version 1.0.0  22May2006}{...}
+{cmd:help wbdecode} 
+{hline}
+
+{title:Title}
+
+{p2colset 5 20 22 2}{...}
+{p2col :{hi:wbdecode} {hline 2}}read data stored as WinBUGS structures into Stata{p_end}
+{p2colreset}{...}
+
+{title:Syntax}
+
+{phang2}
+{cmd:wbdecode}
+{cmd:,} {opt f:ilename(string)} {opt clear} [ {opt a:rray} ]
+
+{col 8}{it:options}{col 32}description
+{col 8}{hline 72}
+{col 8}{cmdab:f:ilename(}{it:string}{cmd:)}{col 32}text file containing the structures
+{col 8}{cmdab:clear:}{col 32}permission to overwrite existing data
+{col 8}{cmdab:a:rray}{col 32}read a WinBUGS array rather than a list
+{col 8}{hline 72}
+
+{title:Description}
+{pstd}
+{cmd:wbdecode} reads data from a text file when the data are stored in WinBUGS
+format, that is, as a list structure or an array. If the data are part of a compound document
+they must be copied to a text file before using wbdecode. wbdecode is useful for reading the
+data from the examples supplied with WinBUGS so that the data can be processed in Stata, but
+it would also read data from R or S-plus structures. 
+{it: Any existing data in Stata will be lost so you must specify the clear option}.
+
+{title:Options}
+{phang}{opt f:ilename(string)} 
+name of the text file containing the WinBUGS data {p_end}
+
+{phang}{opt clear} 
+permission to clear current data - NOT optional
+
+{phang}{opt a:rray} 
+read an array. The default is to read a list structure
+
+{title:Example}
+{phang}{cmd:. wbdecode , clear fi(test.txt)}{p_end}
+
+{title:Warning}
+{pstd}
+{cmdab:wbdecode} reads list structures by searching for the next "=" and then locating the variable name that
+preceeds it and the structure type that follows. Spreading this information over more that one line 
+would cause {cmdab:wbdecode} to misread the data. So {p_end}
+{col 10}y = c(
+{col 10}1 ,2 ,3 )
+{pstd}
+is OK. But{p_end}
+{col 10}y
+{col 10}= c(1, 2, 3)
+{pstd}
+would fail{p_end}
+
+{title:Reference}
+{phang}The WinBUGS Manual is available from {browse www.mrc-bsu.cam.ac.uk/bugs}. 
+See {help winbugs} for a list of all of the commands for running WinBUGS from Stata.
+
+{title:Author}
+{phang} John Thompson, Department of Health Sciences, 
+University of Leicester. Please report any errors to {browse "mailto:john.thompson@le.ac.uk":john.thompson@le.ac.uk}.

@@ -1,0 +1,31 @@
+{smcl}
+{* 14aug2002}{...}
+{hline}
+help for {hi:refgroup}
+{hline}
+
+{title:Set reference group for coded categorical variables}
+
+{p 8 14}{cmd:refgroup} {it:varname value} 
+
+{title:Description}
+
+{p}{cmd:refgroup} is convenience command that sets the value 
+of the reference group for coded categorical variables using 
+{cmd:xi} and {cmd:xi3}.
+
+It is equivalent to 
+{p 1 5}{inp:. char varname[omit] value}{p_end}
+
+{title:Example}
+
+{p 1 5}{inp:. refgroup prog 3}{p_end}
+
+{title:Author}
+
+{p 5 5}
+Philip B. Ender{break}
+UCLA Depatment of Education{break}
+UCLA Academic Technology Services{break}
+ender@ucla.edu 
+{p_end}

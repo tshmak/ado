@@ -1,0 +1,68 @@
+{smcl}
+{* *! version 1.0.0  22May2006}{...}
+{cmd:help wbac} 
+{hline}
+
+{title:Title}
+
+{p2colset 5 20 22 2}{...}
+{p2col :{hi:wbac} {hline 2}}autocorrelation plots{p_end}
+{p2colreset}{...}
+
+{title:Syntax}
+
+{phang2}
+{cmd:wbac}
+{varlist} 
+{ifin}
+[{cmd:,} {it:options} ]
+
+{col 8}{it:options}{col 32}description
+{col 8}{hline 72}
+{col 8}{cmdab:pac:}{col 32}partial autocorrelation plots
+{col 8}{cmdab:ac:options(}{it:string}{cmd:)}{col 32}options passed directly to ac or pac
+{col 8}{cmdab:g:options(}{it:string}{cmd:)}{col 32}graphics options for the individual plots
+{col 8}{cmdab:cg:options(}{it:string}{cmd:)}{col 32}options combining plots
+{col 8}{cmdab:s:aving(}{it:string,replace}{cmd:)}{col 32}graphics file (.gph) for the final plot
+{col 8}{cmdab:e:xport(}{it:string,replace}{cmd:)}{col 32}graphics file with non-standard formats
+{col 8}{cmdab:ds:aving(}{it:string,replace}{cmd:)}{col 32}.dta file for the autocorrelations
+{col 8}{hline 72}
+
+{title:Description}
+{p}
+{cmd:wbac} plots the autocorrelations or partial autocorrelations using the Stata 
+commands {help ac} or {help pac}. If the varlist contains more than 1 parameter 
+the separate plots are combined within a single plot using {help graph combine}.
+
+{title:Options}
+{phang}{opt pac} Plot partial autocorrelations rather than the default of autocorrelations.
+
+{phang}{opt ac:options(string)}
+options passed directly to {help ac} or {help pac}. 
+
+{phang}{opt g:options(string)}
+{help graph} options for controlling the plots of each set of correlations. 
+
+{phang}{opt cg:options(string)}
+{help graph combine} options to control the combining of the plots. 
+
+{phang}{opt s:aving(string,replace)}
+filename (.gph) for saving the final plot.
+
+{phang}{opt e:xport(string,replace)}
+filename for exporting the final plot in a non-standard format such as eps or png. 
+The format depends of the choice of file extension, see {help graph export}
+
+{phang}{opt ds:aving(string,replace)}
+Stata data (.dta) file for saving the autocorrelations for each plot.
+
+{title:Example }
+{phang}	{cmd:. wbac alpha beta , gopt(scheme(s1mono))} {p_end}
+
+{title:Reference}
+{phang}The WinBUGS Manual is available from {browse www.mrc-bsu.cam.ac.uk/bugs}. 
+See {help winbugs} for a list of all of the commands for running WinBUGS from Stata.
+
+{title:Author}
+{phang} John Thompson, Department of Health Sciences, 
+University of Leicester. Please report any errors to {browse "mailto:john.thompson@le.ac.uk":john.thompson@le.ac.uk}.

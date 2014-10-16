@@ -1,0 +1,85 @@
+.-
+help for ^aflogit^                                         (STB-42: sbe21)
+.-
+
+Attributable fraction from logistic regression
+----------------------------------------------
+
+	^aflogit^ [term [term ...]] [weight] [^if^ exp] [^in^ range]
+		[^,^ ^cc^ ^ref^erence^(^term ^=^ # [term ^=^ # ...]^)^ ^l^evel^(^#^)^ ]
+
+^fweight^s and ^aweight^s are allowed; see help @weights@.
+
+^aflogit^ can only be run after unconditional logistic or poisson regression, see
+help @logistic@, @logit@, @blogit@, @glm@ or @poisson@.
+
+
+Description
+-----------
+
+^aflogit^ estimates adjusted measures of the population attributable
+fraction from the current logistic or poisson regression model. Without 
+arguments, ^aflogit^ reports attributable fractions for all terms in the
+model which are positively associated with the outcome.
+
+Standard errors and confidence intervals are based on asymptotic
+approximations, see Greenland and Drescher (1993).
+
+The weights, ^if^, and ^in^ clauses used in the last regression model (if any)
+are picked up automatically except after @logit@, @blogit@ and @poisson@
+in which case the user should specify the weights and selection used.
+
+
+Options
+-------
+
+^cc^ indicates that the data come from an unmatched case-control study.
+    The default is to assume the data come from a cross-sectional or
+    cohort study. It is important to set this according to the type of
+    data you have since the calculations (and hence estimates) are 
+    different in the two cases.
+
+^reference^ determines the reference level (the non-exposure category)
+    for each term in the model. By default this is zero for every term.
+    For continuous variables it may be desirable to set the reference 
+    level to a non-zero value (e.g. the mean for a variable such as
+    blood pressure).
+
+^level(^#^)^ specifies the significance level, in percent, for confidence
+    intervals of the coefficients; see help @level@.
+
+
+Examples
+--------
+
+   . ^logistic mdrtb age sex hiv prevtb bornabr^
+   . ^aflogit hiv prevtb bornabr^
+   . ^aflogit age hiv, ref(age=16)^
+   . ^aflogit^
+
+   . ^xi: logit cc i.alcohol i.smoke*i.agegp [fw=n]^
+   . ^aflogit Ialcohol* [fw=n], cc^
+
+
+Reference
+---------
+
+Greenland S. and K. Drescher. 1993. Maximum likelihood estimation of the
+attributable fraction from logistic models. Biometrics 49: 865-872.
+
+
+Author
+------
+
+      Tony Brady
+      PHLS Statistics Unit
+      U.K.
+      email: tbrady@@phls.ac.uk
+
+
+Also see
+--------
+
+    STB:  STB-42 sbe21
+On-line:  help for @blogit@, @cc@, @glm@, @logistic@, @logit@, @level@
+

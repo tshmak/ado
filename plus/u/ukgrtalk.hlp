@@ -1,0 +1,108 @@
+{smcl}
+{* 04may2004}{...}
+{hline}
+help for Vince Wiggins' graphics talk at the 2004 UK User Group Meeting
+{hline}
+
+{title:Description}
+
+{p 3 3 2}
+The talk was given from within Stata using SMCL to present information and run
+commands, do-files, and programs.  If the talk has been installed on your
+system, an annotated version of those files is located in your personal
+directory (see help {help sysdir}) in the subdirectory {bf:uk04grtalk}.
+
+{p 3 3 2}
+The SMCL "slides" in the talk are interactive.  Click on the commands in
+sequence to see the demonstrations.  Click on the {help ukgrtalk:>>} to move
+forward a slide or on the {help ukgrtalk:<<} to move backward a slide.  You
+can also click on the {help ukgrtalk:index} to see a table of contents of
+slides and index of associated files.  The annotations are shown in italicized
+standard text.
+
+{p 3 3 2}
+A few slides have digressions that are not on the sequential path.  Such
+digressions are seen as {help ukgrtalk:>>{it:something}} and lead you to a
+slide where the only return is {help ukgrtalk:<<}.
+
+{p 3 3 2}
+The index slide contains links to ancillary slides that were not shown in the
+original talk and are not on the sequential path through the talk.  They can
+be accessed only from the index.
+
+{title:Installing the talk}
+
+{p 3 3 2}
+Before running the talk, you must install the talk; type,
+
+	. {cmd:ukgrtalk}
+
+{p 3 3 2}
+to install the talk.  The talk is always installed in your personal ado
+directory, as identified by the {help sysdir} command, in a subdirectory named
+{bf:uk04talk}.  You can update the materials for the talk by typing
+
+	. {cmd:ukgrtalk , update}
+
+
+{title:Running the talk}
+
+{p 3 3 2}
+To run the talk you must be in the {bf:uk04talk} directory.  
+
+{p 3 3 2}
+To change Stata to that directory, 
+{stata cd `"`c(sysdir_personal)'/uk04grtalk"':click here}.
+
+{p 3 3 2}
+To begin the talk {view cover.smcl:click here}.
+
+
+{title:Some notes on formatting}
+
+{p 3 3 2}
+This will be of interest primarily to those wanting to use these materials as
+a model for lectures or other talks.  If you just want to see the material,
+what follows can be safely skipped.
+
+{p 3 3 2}
+When this talk was presented, the viewer was set to make the "slides" look
+their best and be large enough to see from the back row.  The viewer font was
+set to a large point size {c -} 20 points {c -} and the fontface supported
+bold and italic styles.  The colors and style of text for links, results, and
+other types of text was also reset.  While not required for viewing the talk,
+these settings make the slides somewhat prettier.
+
+{p 3 3 2}
+To change the viewer font under MS Windows, click the window icon in the upper
+left corner of the viewer and select {cmd:font} from the menu.  On the
+Macintosh, the font can be changed from the {cmd:Prefs} menu.  On all variants
+of Unix and Linux, the fonts can be changed from the general preferences
+dialog box under the {cmd:Prefs|General Prefs} menu.  Select {cmd:Viewer} of
+{cmd:Window} then {cmd:Viewer} in the resulting dialog box (depending on
+operating system).
+
+{p 3 3 2}
+All of the settings for the style of text can be set from general preference
+dialog box for the viewer (which can be accessed as described above).  Here
+are the settings used for the presentation.  You can start from any of the
+custom schemes; we started from {cmd:Custom 1}.
+
+      {dup 56:{c -}}
+                     {dup 8:{c -}} Color {dup 8:{c -}}
+      text type           RGB      color      bold  underlined
+      {dup 56:{c -}}
+      Results        255 255   0  yellow        no      no
+      Standard       190 190 190  lt. gray      no      no
+      Error          255   0   0  red           no      no
+      Input          255 255 255  white        yes      no
+      Link           255 255 255  white        yes      no
+      Hilite         255 251  91  dk yellow    yes      no
+      Background       0  92 121  dk navy
+      {dup 56:{c -}}
+
+{p 3 3 2}
+Note that colors are reported in 0-255 RGB values, as set under Windows.
+Macintosh, Unix, and Linux systems accept RGB values on a 0.0 to 1.0 scale and
+the RGB values above must be scaled accordingly.
+

@@ -1,0 +1,79 @@
+{smcl}
+{* 25jun2007}{...}
+{cmd:help mata add()}
+{cmd:help mata subtract()}
+{cmd:help mata product()}
+{cmd:help mata divide()}{right:(SJ7-4: pr0034)}
+{hline}
+{* index rpn binary operators mata}{...}
+{* index add()}{...}
+{* index subtract()}{...}
+{* index product()}{...}
+{* index divide()}{...}
+
+{title:Title}
+
+{p 4 4 2} {bf:Fundamental arithmetic operations for use with rpnfcn()}
+
+
+{title:Syntax}
+
+{p 16 12 2}
+{bf:{ul:Command name}}{space 5} {ul:Argument}
+
+{p 16 12 2}
+{cmd:&add()}{space 11} NULL
+
+{p 16 12 2}
+{cmd:&subtract()}{space 6} NULL
+
+{p 16 12 2}
+{cmd:&product()}{space 7} NULL
+
+{p 16 12 2}
+{cmd:&divide()}{space 8} NULL
+
+
+{title:Description}
+
+{p 4 4 2} These functions perform the four fundamental arithmetic
+operations on the two top elements of the stack. They remove the top
+element and replace the upper element with the result of the
+operation; i.e., the number of elements in the stack are reduced by one
+and the result is the new top element. All four perform their
+operations elementwise without checking for conformability as they
+rely on the Mata colon operators {cmd::+}, {cmd::-+}, {cmd::*}, and
+{cmd::/}, see {helpb m2_op_colon:[M-2] op_colon}.
+{cmd:&subtract()} subtracts the current top element of the stack
+element from the element just below, and {cmd:&divide()} divides the
+upper element of the stack with the top element.
+
+
+{title:Source code}
+
+{p 4 4 2}
+{view rpnbinop.mata, adopath asis:rpnbinop.mata}
+
+
+{title:Author}
+
+{p 4 4 2}{browse "http://www.almen.dk/hstovring":Henrik Støvring},
+Research Unit of General Practice, University of Southern Denmark.
+Please email
+{browse "mailto:hstovring@health.sdu.dk":hstovring@health.sdu.dk}
+if you have comments or questions or observe any problems.
+
+
+{title:Also see}
+
+{p 4 13 2}
+Manual:  {hi:[M-0] mata}
+
+{p 4 13 2}
+Online:  
+{bf:{help mata:[M-0] mata}},
+{bf:{help mf_rpnfcn}},
+{bf:{help mf_rpnbinop}}, 
+{bf:{help mf_rpndist}},
+{bf:{help mf_rpnint}}
+{p_end}

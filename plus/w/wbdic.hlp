@@ -1,0 +1,57 @@
+{smcl}
+{* *! version 1.0.0  22May2006}{...}
+{cmd:help wbdic} 
+{hline}
+
+{title:Title}
+
+{p2colset 5 20 22 2}{...}
+{p2col :{hi:wbdic} {hline 2}}read Deviance Information Criterion (DIC) statistics in a WinBUGS log-file into Stata{p_end}
+{p2colreset}{...}
+
+{title:Syntax}
+
+{phang2}
+{cmd:wbdic} {cmd:using} {it:filename} 
+[{cmd:,} {cmdab:nop:rint} ]
+
+{col 8}{it:options}{col 32}description
+{col 8}{hline 72}
+{col 8}{cmdab:nop:rint}{col 32}suppress display of DIC statistics
+{col 8}{hline 72}
+
+{title:Description}
+{pstd}
+{cmd:wbdic} reads the DIC statistics from a WinBUGS log-file into Stata. It can cope with 
+multiple sets of DIC statistics per log-file and varying number of rows for each set 
+of statistics. {cmd:wbdic} returns all DIC statistics as scalars.
+
+{pstd}
+The DIC statistics for a model can only be calculated by WinBUGS. DIC statistics cannot be 
+calculated in Stata even if the undocumented 'deviance' node is monitored in WinBUGS and read into Stata. 
+Therefore the only way to access DIC statistics in Stata is to read them in from a WinBUGS log-file.
+
+{title:Options}
+{phang}{opt nop:rint}
+suppresses the display of the DIC statistics to the results window. This option speeds up execution 
+if there are many sets of DIC statistics in the log-file.
+
+{title:Examples}
+With WinBUGS log-file in d:/mydata
+{phang}	{cmd:. wbdic using d:/mydata/winbugslog.txt} {p_end}
+
+With WinBUGS log-file in C:\My Documents with noprint option
+{phang}	{cmd:. wbdic using "C:\My Documents\winbugslog.txt", noprint} {p_end}
+
+{title:Reference}
+{phang}The definition of the Deviance Information Criterion was given by,{p_end}
+{col 8}Spiegelhalter, Best, Carlin and van der Linde 
+{col 8}Bayesian measures of model complexity and fit
+{col 8}{it:J. R. Statist. Soc.} B, 2002, 64(4), 583-639. 
+
+{phang}The WinBUGS Manual is available from {browse www.mrc-bsu.cam.ac.uk/bugs}. 
+See {help winbugs} for a list of all of the commands for running WinBUGS from Stata.
+
+{title:Author}
+{phang} Tom Palmer, Department of Health Sciences, 
+University of Leicester. Please report any errors to {browse "mailto:tmp8@le.ac.uk":tmp8@le.ac.uk}.

@@ -1,0 +1,70 @@
+{smcl}
+{* *! version 1.0.0  22May2006}{...}
+{cmd:help wbhull} 
+{hline}
+
+{title:Title}
+
+{p2colset 5 20 22 2}{...}
+{p2col :{hi:wbhull} {hline 2}}plots convex hulls for pairs of parameter{p_end}
+{p2colreset}{...}
+
+{title:Syntax}
+
+{phang2}
+{cmd:wbhull}
+{varlist} 
+{ifin}
+[{cmd:,} {cmdab:p:eels(}{it:numlist}{cmd:)} {it:options} ]
+
+{col 8}{it:options}{col 32}description
+{col 8}{hline 72}
+{col 8}{cmdab:p:eels(}{it:numlist}{cmd:)}{col 32}peel numbers to be plotted
+{col 8}{cmdab:h:ull(}{it:varname}{cmd:)}{col 32}variable to store peel number of each point
+{col 8}{cmdab:t:hin(}{it:#}{cmd:)}{col 32}thinning number top limit the chain size
+{col 8}{cmdab:g:options(}{it:string}{cmd:)}{col 32}graphics options for the individual plots
+{col 8}{cmdab:cg:options(}{it:string}{cmd:)}{col 32}options combining plots
+{col 8}{cmdab:s:aving(}{it:string,replace}{cmd:)}{col 32}graphics file (.gph) for the final plot
+{col 8}{cmdab:e:xport(}{it:string,replace}{cmd:)}{col 32}graphics file with non-standard formats
+{col 8}{hline 72}
+
+{title:Description}
+{phang} {cmd:wbhull} plots convex hulls from the simulations of pairs of parameters in 
+order to give a visual impression of their bivariate posterior distribution.{p_end}
+
+{title:Options}
+{phang}{opt p:eels(numlist)}
+numbers of the peels that are to be plotted. The outer hull is peel 1, the next is peel 2, etc.
+
+{phang}{opt h:ull(varname)}
+variable to save an identifier showing the peel to which each point belongs.
+
+{phang}{opt t:hin(#)}
+thin the data by taking every nth value. This can speed up the routine when the MCMC sequence is very long.
+
+{phang}{opt g:options(string)}
+passes its string as graphics options when the density estimates are plotted.
+
+{phang}{opt cg:options(string)}
+passes its string directly to {help graph combine} whenever {it:varlist} contains more than one parameter.
+
+{phang}{opt s:aving(string,replace)}
+specifies a filename for saving the final graph in .gph format.
+
+{phang}{opt e:xport(string,replace)}
+specifies a filename for exporting the final graph in a non-Stata format such as .eps or .png. 
+The format depends on the extension to the given filename.
+
+{title:Example}
+with appropriately defined data
+{phang}	{cmd:. wbhull alpha, peels(5 10)} {p_end}
+
+{title:Reference}
+{phang}The WinBUGS Manual is available from {browse www.mrc-bsu.cam.ac.uk/bugs}. 
+See {help winbugs} for a list of all of the commands for running WinBUGS from Stata. 
+{cmd:wbhull} incorporates a section of code taken from the Stata ado file conhull.ado, 
+which is itself described in; Gray JP & McGuire T, Convex hull programs, {it:Stata Technical Bulletin}, 23, 1995:59-66.
+
+{title:Author}
+{phang} John Thompson, Department of Health Sciences, 
+University of Leicester. Please report any errors to {browse "mailto:john.thompson@le.ac.uk":john.thompson@le.ac.uk}.

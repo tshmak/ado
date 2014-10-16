@@ -1,0 +1,70 @@
+Phi Coefficient (fourfold correlation)
+--------------------------------------
+
+         ^phi^ categorical_var categorical_var [^if^ exp] [^in^ range], options
+
+You can enter any tabulate option ^except chi^; the chi option is built into
+the command since the statistic is needed to calculate ^phi^.  You can use the
+^all^ option, however.
+
+^phi^ calculates the phi, or correlation coefficient, for a 2 X 2 table, along
+with the chi-squared statistic.  This is also Cohen's effect size, ^w^, for
+those using J. Cohen (1988), Statistical Power Analysis for the Behavioral
+Sciences, 2nd edition, Hillsdale, NJ:  Lawrence Erlbaum Associates,
+Publishers.  You might also need this if you are using software to calculate
+power that requires that you know ^w^.
+
+The ^phi^ coefficient is equal to sqrt(chi-square/N).  If you have a 2 X 2
+table this is equal to the correlation coefficient for these variables (see
+the example below).  Since this is a correlation coefficient, its square is
+meaningful and is provided in the output.  If either the rows or the columns
+are greater than 2, then this program supplies ^Cramer's phi-prime^, as well
+as Cohen's ^w^.  Note that if either rows or columns is greater than 2, then
+^w^ does not equal ^phi-prime^ and ^phi-prime^ is not the correlation
+coefficient either; also, its square is not meaningful and is not provided.
+
+Examples:
+
+A 2 X 2 table, followed by the correlation:
+
+. phi female ra if staff==0
+
+           | Returned Admin.
+     female|        no        yes |     Total
+-----------+----------------------+----------
+      Male |        27         16 |        43
+    Female |        31          3 |        34
+-----------+----------------------+----------
+      Total|        58         19 |        77
+
+          Pearson chi2(1) =   8.2311   Pr = 0.004
+phi = Cohen's w = fourfold point correlation = 0.3270   phi-squared = 0.1069
+
+. corr female ra if staff==0
+(obs=77)
+        |   female       ra
+--------+------------------
+  female|   1.0000
+      ra|  -0.3270   1.0000
+
+A 2 X 4 table followed by its correlation:
+
+. phi female srank if staff==0
+
+           | srank
+     female|         0          1          2          3 |     Total
+-----------+--------------------------------------------+----------
+      Male |        17         14          9          3 |        43
+    Female |        17         17          0          0 |        34
+-----------+--------------------------------------------+----------
+      Total|        34         31          9          3 |        77
+
+          Pearson chi2(3) =  11.3940   Pr = 0.010
+Cramer's phi-prime =  0.3847     Cohen's w = 0.3847
+
+. corr female srank if staff==0
+(obs=77)
+        |   female    srank
+--------+------------------
+  female|   1.0000
+   srank|  -0.2786   1.0000

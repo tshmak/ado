@@ -1,0 +1,106 @@
+{smcl}
+{* *! version 1.0.0  22May2006}{...}
+{cmd:help wbscript} 
+{hline}
+
+{title:Title}
+
+{p2colset 5 20 22 2}{...}
+{p2col :{hi:wbscipt} {hline 2}}write a WinBUGS script file{p_end}
+{p2colreset}{...}
+
+{title:Syntax}
+
+{phang2}
+{cmd:wbscript}
+[ {cmd:,}  {it:options} ]
+
+{col 8}{it:options}{col 32}description
+{col 8}{hline 72}
+{col 8}{cmdab:m:odelfile(}{it:string}{cmd:)}{col 32}file containing the model
+{col 8}{cmdab:d:atafile(}{it:string}{cmd:)}{col 32}file(s) of data
+{col 8}{cmdab:ch:ains(}{it:#}{cmd:)}{col 32}number of chains
+{col 8}{cmdab:i:nitsfile(}{it:string}{cmd:)}{col 32}file(s) of inital values
+{col 8}{cmdab:set:(}{it:string}{cmd:)}{col 32}parameter(s) to save
+{col 8}{cmdab:b:urin(}{it:#}{cmd:)}{col 32}length of the burn-in
+{col 8}{cmdab:u:pdates(}{it:#}{cmd:)}{col 32}length of each chain
+{col 8}{cmdab:th:in(}{it:#}{cmd:)}{col 32}save every {it:#}th simulation
+{col 8}{cmdab:c:odafile(}{it:string}{cmd:)}{col 32}root of file for saving MCMC values
+{col 8}{cmdab:dic:}{col 32}write dic to the log
+{col 8}{cmdab:l:ogfile(}{it:string}{cmd:)}{col 32}text file for saving the log
+{col 8}{cmdab:q:uit}{col 32}close WinBUGS on completion
+{col 8}{cmdab:nop:rint}{col 32}suppress display to results window
+{col 8}{cmdab:s:aving(}{it:string,replace}{cmd:)}{col 32}text file for the script
+{col 8}{hline 72}
+
+{title:Description}
+{p}
+{cmd:wbscript} writes a WinBUGS script file for fitting a model.
+
+{title:Options}
+{phang}{opt m:odelfile(string)}
+path and name of the file containing the model description
+
+{phang}{opt d:atafile(string)}
+path and name of the data file(s). Multiple data files should
+be separated by +'s.
+
+{phang}{opt ch:ains(#)}
+number of parallel chains - default=1. If chains>1 then
+a separate set of inital values must be given for each chain. In this case if the inits options
+names the file "in.txt", the actual files are assumed to be in1.txt, in2.txt, etc
+
+{phang}{opt i:nitsfile(string)}
+path and root of the file(s) containing the initial values. 
+A gen.inits command automatically follows the reading of inital values so that WInBUGS will
+try to randomly generate inital values for any parameters not explicitly mentioned in the initsfiles.
+WinBUGS is not always able to generate initial values and this could cause a program
+to fail.
+
+{phang}{opt set:(string)}
+list of the parameters that to have their MCMC values saved
+
+{phang}{opt b:urnin(#)}
+length of the burn-in - default=0 ie no burnin
+
+{phang}{opt u:pdates(#)}
+length of the actual chain - default=1000
+
+{phang}{opt th:in(#)}
+save every nth simulation - default=1 ie no thinning, save all simulations
+
+{phang}{opt c:odafile(string)}
+path and name of the file for saving the MCMC results in coda format.
+Do NOT put a file extension (eg .txt) on the name because WinBUGS creates several coda files with this 
+specified root; an index file and a data file for each chain. The extension is added by WinBUGS.
+
+{phang}{opt dic:}
+calculate the deviance information criterion and write it to the log
+
+{phang}{opt l:ogfile(string)}
+path and root for saving the logfile. 
+
+{phang}{opt q:uit} 
+whether to quit WinBUGS after the analysis and return control immediately to Stata. 
+If quit is not specified WinBUGS remains active for further interactive processing and Stata
+only become active again when WinBUGS is closed.
+
+{phang}{opt s:aving(string,replace)}
+file in which to save the script.{p_end}
+
+{title:Example}
+{phang}{cmd:. wbscript , model(d:\tutorial\model.txt)  ///} {p_end}
+{phang}{cmd:data(d:\tutorial\data1.txt+d:\tutorial\data2.txt) ///} {p_end}
+{phang}{cmd:inits(d:\tutorial\init.txt) ///} {p_end}
+{phang}{cmd:coda(d:\tutorial\out) set(alpha beta) ///} {p_end}
+{phang}{cmd:burn(1000) update(5000) quit ///} {p_end}
+{phang}{cmd:saving(d:\tutorial\script.txt,replace) } {p_end}
+
+            
+{title:Reference}
+{phang}The WinBUGS Manual is available from {browse www.mrc-bsu.cam.ac.uk/bugs}. 
+See {help winbugs} for a list of all of the commands for running WinBUGS from Stata.
+
+{title:Author}
+{phang} John Thompson, Department of Health Sciences, 
+University of Leicester. Please report any errors to {browse "mailto:john.thompson@le.ac.uk":john.thompson@le.ac.uk}.

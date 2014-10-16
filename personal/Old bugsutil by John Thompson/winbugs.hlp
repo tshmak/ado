@@ -1,0 +1,47 @@
+{smcl}
+{* *! version 1.0.0  19jul2006}{...}
+{cmd:help winbugs} 
+{hline}
+
+{title:Title}
+
+{p2colset 5 20 22 2}{...}
+{p2col :{hi:winbugs} {hline 2}}help on available routines for running WinBUGS{p_end}
+{p2colreset}{...}
+
+
+{title:Description}
+{phang}This help file describes the commands available for running WinBUGS from
+within Stata. There is no executable command {cmd:winbugs}.{p_end}
+
+The files are
+{help wbarray}      writes data from Stata as a WinBUGS array
+{help wbdata}       writes mixed data (scalars, vectors & structures) from Stata as a WinBUGS list
+{help wbscalar}     writes scalars from Stata as a WinBUGS list
+{help wbstructure}  writes data from Stata as a WinBUGS structure
+{help wbvector}     writes data from Stata as a WinBUGS vector
+
+{help wbcoda}       reads data from a WinBUGS coda file into Stata
+{help wbdecode}     reads data from a WinBUGS list into Stata
+
+{help wbrun}        runs a pre-prepared WinBUGS script file from within Stata
+{help wbscript}     writes & runs a WinBUGS script file from within Stata
+
+{help wbac}         autocorrelation plots
+{help wbbgr}        Brooks-Gelman-Rubin plot
+{help wbgeweke}     test of means for two sections of a chain
+{help wbintervals}  interval plots for sections of a chain
+{help wbsection}    density plots of subsections of a chain
+{help wbtrace}      trace (history) plot(s) of an MCMC run
+
+{help wbdensity}    smoothed posterior density estimates
+{help wbdic}        read Deviance Information Criterion (DIC) statistics in a WinBUGS log-file into Stata
+{help wbhull}       contours for pairs of parameters
+{help wbstats}      summary statistics from an MCMC chain
+
+{title:Reference}
+{phang}The WinBUGS Manual is available from {browse www.mrc-bsu.cam.ac.uk/bugs}.
+
+{title:Author}
+{phang} John Thompson, Department of Health Sciences, 
+University of Leicester. Please report any errors to {browse "mailto:john.thompson@le.ac.uk":john.thompson@le.ac.uk}.{p_end}

@@ -1,0 +1,507 @@
+* 00000017
+*! version 1.0.0
+* Do not erase or edit this file
+* It is used by Stata to track the ado and help
+* files you have installed.
+
+S http://fmwww.bc.edu/repec/bocode/d
+N distinct.pkg
+D 19 Dec 2013
+U 1
+d 'DISTINCT': module to display distinct values of variables
+d 
+d distinct displays the number of distinct values for each variable
+d in a varlist.  The varlist may include both numeric and string
+d variables.
+d 
+d KW: distinct observations
+d KW: unique values
+d 
+d Requires: Stata version 8.0
+d 
+d 
+d Author: Gary Longton, Fred Hutchinson Cancer Research Center
+d Support: email glongton@@fhcrc.org
+d 
+d Author: Nicholas J. Cox, Durham University
+d Support: email N.J.Cox@@durham.ac.uk
+d 
+d Distribution-Date: 20120321
+d 
+f d\distinct.ado
+f d\distinct.hlp
+e
+S http://fmwww.bc.edu/repec/bocode/e
+N egenmore.pkg
+D 20 Dec 2013
+U 2
+d 'EGENMORE': modules to extend the generate function
+d 
+d  This package includes various -egen- functions. For full
+d details, please read the help file (ssc type egenmore.hlp).
+d Required versions of Stata are indicated in the help and  vary
+d from Stata 6 up. Other than the maintainer, program  authors are
+d Nick Winter, Steven Stillman, Ulrich Kohler and Kit Baum.
+d 
+d KW: egen
+d KW: grouping
+d KW: graphing
+d KW: strings
+d KW: dates
+d KW: first
+d KW: last
+d KW: random
+d KW: row
+d 
+d Requires: Stata version 6.0 (7.0 for _gfilter7, _ggroup2, _gegroup, _gsieve, _gnoccur; 8.2 for _gcorr, _grepeat, _gminutes, _gseconds, _gfilter, _gaxis, _gdensity, _gxtile, _gtotal0, _gmixnorm, _gw
+d 
+d 
+d Author: Nicholas J. Cox, University of Durham
+d Support: email  N.J.Cox@@durham.ac.uk
+d 
+d Distribution-Date: 20070831
+f e\egenmore.hlp
+f _\_gclsst.ado
+f _\_gnmiss.ado
+f _\_ggmean.ado
+f _\_ghmean.ado
+f _\_grall.ado
+f _\_grany.ado
+f _\_grcount.ado
+f _\_grndsub.ado
+f _\_grndint.ado
+f _\_gfilter.ado
+f _\_gifirst.ado
+f _\_gilast.ado
+f _\_gncyear.ado
+f _\_ghmm.ado
+f _\_ghmmss.ado
+f _\_gincss.ado
+f _\_gfirst.ado
+f _\_glastnm.ado
+f _\_gnss.ado
+f _\_gbom.ado
+f _\_gbomd.ado
+f _\_geom.ado
+f _\_geomd.ado
+f _\_gnwords.ado
+f _\_gwordof.ado
+f _\_gnvals.ado
+f _\_gridit.ado
+f _\_gsemean.ado
+f _\_gmsub.ado
+f _\_gston.ado
+f _\_gntos.ado
+f _\_gewma.ado
+f _\_grecord.ado
+f _\_gbase.ado
+f _\_gdecimal.ado
+f _\_ggroup2.ado
+f _\_gsumoth.ado
+f _\_gegroup.ado
+f _\_gcorr.ado
+f _\_grsum2.ado
+f _\_gsieve.ado
+f _\_gdhms.ado
+f _\_ghms.ado
+f _\_gtod.ado
+f _\_gelap.ado
+f _\_gelap2.ado
+f _\_gnoccur.ado
+f _\_gwtfreq.ado
+f _\_gvar.ado
+f _\_gminutes.ado
+f _\_gseconds.ado
+f _\_grepeat.ado
+f _\_gaxis.ado
+f _\_gdensity.ado
+f _\_gxtile.ado
+f _\_gtotal0.ado
+f _\_gmixnorm.ado
+f _\_gadjl.ado
+f _\_gadju.ado
+f _\_gdayofyear.ado
+f _\_gfoy.ado
+f _\_goutside.ado
+f _\_gmlabvpos.ado
+f _\_giso3166.ado
+f _\_growmedian.ado
+f _\_gwpctile.ado
+e
+S http://fmwww.bc.edu/repec/bocode/r
+N rtmci.pkg
+D 27 Dec 2013
+U 3
+d 'RTMCI': module to estimate regression to the mean effects with confidence intervals
+d 
+d  rtmci calculates the regression to the mean effect for a
+d variable that is generally measured at two points in time (i.e.,
+d "pre-test" and "post-test"), based on a defined cutoff value on
+d the "pre-test" measure, and estimates confidence intervals using
+d bootstrap simulation; see bootstrap. If only summary level
+d statistics are available (e.g., as published in a journal
+d article), the user may consider using rtmcii, an immediate form
+d of rtmci.
+d 
+d KW: regression to the mean
+d KW: regression to mediocrity
+d KW: regression effects
+d 
+d Requires: Stata version 11.0
+d 
+d Distribution-Date: 20131225
+d 
+d Author: Ariel Linden, Linden Consulting Group, LLC
+d Support: email alinden@@lindenconsulting.org
+d 
+f r\rtmci.ado
+f r\rtmci.sthlp
+f r\rtmcii.ado
+f r\rtmcii.sthlp
+f r\rtm_calc.ado
+e
+S http://fmwww.bc.edu/repec/bocode/e
+N estout.pkg
+D 27 Dec 2013
+U 4
+d 'ESTOUT': module to make regression tables
+d 
+d  estout produces a table of regression results from one or
+d several models for use with spreadsheets, LaTeX, HTML, or a
+d word-processor table. eststo stores a quick copy of the active
+d estimation results for later tabulation. esttab is a wrapper for
+d estout. It displays a pretty looking publication-style regression
+d table without much typing. estadd adds additional results to the
+d e()-returns for one or several models previously fitted and
+d stored. This package subsumes the previously circulated esto,
+d esta, estadd,  and estadd_plus. An earlier version of estout is
+d available  as estout1.
+d 
+d KW: estimates
+d KW: LaTeX
+d KW: HTML
+d KW: word processor
+d KW: output
+d 
+d Requires: Stata version 8.2
+d 
+d Distribution-Date: 20091012
+d 
+d Author: Ben Jann, University of Bern
+d Support: email jann@@soz.unibe.ch
+d 
+f _\_eststo.ado
+f _\_eststo.hlp
+f e\estadd.ado
+f e\estadd.hlp
+f e\estout.ado
+f e\estout.hlp
+f e\eststo.ado
+f e\eststo.hlp
+f e\estpost.ado
+f e\estpost.hlp
+f e\esttab.ado
+f e\esttab.hlp
+e
+S http://www.stata.com/users/ymarchenko
+N mibeta.pkg
+D 16 Jan 2014
+U 5
+d mibeta: Standardized coefficients for multiply-imputed data
+d This command reports standardized coefficients and R-squared measures
+d for multiply-imputed data analyzed by using linear regression.
+d 
+d Keywords: multiple imputation, mi estimate, beta weights
+d 
+d Program by Yulia Marchenko, StataCorp <ymarchenko@@stata.com>.
+d 
+d Distribution-Date: 11jul2011
+f m\mibeta.ado
+f m\mibeta.sthlp
+e
+S http://fmwww.bc.edu/repec/bocode/c
+N ciplot.pkg
+D 22 Jan 2014
+U 6
+d 'CIPLOT': module for plots of confidence intervals
+d 
+d ciplot produces a display of means and confidence intervals.  ci
+d is used for the calculations. Both vertical and horizontal
+d displays are possible. This program is for users of Stata 8.
+d 
+d KW: graphics
+d KW: confidence intervals
+d KW: error bars
+d 
+d Requires: Stata version 8.0
+d 
+d 
+d Author: Nicholas J. Cox, Durham University
+d Support: email N.J.Cox@@durham.ac.uk
+d 
+d Distribution-Date: 20110815
+d 
+f c\ciplot.ado
+f c\ciplot.hlp
+e
+S http://fmwww.bc.edu/repec/bocode/p
+N pciplot.pkg
+D 22 Jan 2014
+U 7
+d 'PCIPLOT': module to plot pointwise confidence intervals
+d 
+d  pciplot produces plots of pointwise confidence intervals for
+d yvar against a continuous variable xvar. The CIs are rendered as
+d a shaded area and the plot of yvar against xvar as a line.
+d 
+d KW: survival
+d KW: confidence intervals
+d 
+d Requires: Stata version 11
+d 
+d Distribution-Date: 20130713
+d 
+d Author: Patrick Royston, MRC Clinical Trials Unit
+d Support: email pr@@ctu.mrc.ac.uk
+d 
+f p\pciplot.ado
+f p\pciplot.sthlp
+e
+S http://fmwww.bc.edu/repec/bocode/p
+N palette_all.pkg
+D 23 Jan 2014
+U 8
+d 'PALETTE_ALL': module to display all the named colours in Stata
+d 
+d This command will display all Stata's named colours in one graph
+d so that you can make a comprehensive choice of how to colour your
+d graphs. There is only one option and that is to change the
+d background colour. The idea is that  when choosing the colours
+d for your graph you would need to see how they look on the colour
+d of your plotregion.
+d 
+d KW: graph
+d KW: color
+d KW: colour
+d KW: color palette
+d 
+d Requires: Stata version 8
+d 
+d Distribution-Date: 20060927
+d 
+d Author: Adrian Mander
+d Support: email Adrian.Mander@@mrc-hnr.cam.ac.uk
+d 
+f p\palette_all.ado
+f p\palette_all.hlp
+e
+S http://www.stata.com/users/jpitblado
+N colortrans.pkg
+D 23 Jan 2014
+U 9
+d colortrans: translate between color formats (version 8)
+d Jeff Pitblado, StataCorp <jpitblado@@stata.com>
+d 
+d {cmd:colortrans} takes an RGB or CMYK color specification and redisplays it
+d in both color formats.
+d 
+d This package was developed using Stata 8
+d 
+d Distribution-Date: 12may2004
+f c\colortrans.ado
+f c\colortrans.hlp
+e
+S http://fmwww.bc.edu/repec/bocode/m
+N matamatrix.pkg
+D  7 Feb 2014
+U 10
+d 'MATAMATRIX': module to enable using Mata functions on Stata matrices
+d 
+d  Stata's Mata language comes with a much larger library of
+d functions for matrix operations than the Stata -matrix- command.
+d However, if these were to be applied to Stata matrices, the
+d matrices need first be copied into Mata and the resulting matrix
+d copied back into Stata. -matamatrix- does this automatically, and
+d hence allows simplification of codes (albeit at a cost of speed). d
+d KW: programming
+d KW: Stata
+d KW: Mata
+d 
+d Requires: Stata version 10
+d 
+d Distribution-Date: 20140206
+d 
+d Author: Timothy Mak, University of Hong Kong
+d Support: email tshmak@@hku.hk
+d 
+f m\matamatrix.ado
+f m\matamatrix.sthlp
+e
+S http://repec.org/bocode/c
+N center.pkg
+D  7 Feb 2014
+U 11
+d 'CENTER': module to center (or standardize) variables
+d 
+d  center centers variables to have zero sample mean  (and,
+d optionally, unit sample variance). center is byable and may also
+d be used for quasi-demeaning.
+d 
+d KW: centering
+d KW: demeaning
+d KW: z-score
+d 
+d Requires: Stata version 7.0
+d 
+d Distribution-Date: 20140131
+d 
+d Author: Ben Jann, University of Bern
+d Support: email jann@@soz.unibe.ch
+d 
+f c\center.ado
+f c\center.hlp
+e
+S http://missingdata.lshtm.ac.uk/stata
+N realcomImpute.pkg
+D 10 Feb 2014
+U 12
+d realcomImpute. Export data to Realcom Impute for multiple imputation and load imputed datasets
+d Jonathan Bartlett, London School of Hygiene & Tropical Medicine.
+d jonathan.bartlett@lshtm.ac.uk
+d www.missingdata.org.uk
+d 
+d Distribution-Date: 20110921
+f r\realcomimpute.ado
+f r\realcomimpute.sthlp
+f r\realcomimputeload.ado
+f r\realcomimputeload.sthlp
+e
+S http://fmwww.bc.edu/RePEc/bocode/s
+N surface.pkg
+D 25 Feb 2014
+U 14
+d 'SURFACE': module to draw a 3D wireform surface plot
+d 
+d   The surface command attempts to draw a wireframe plot from
+d three variables.  var1 specifies the x-coordinate, var2 the
+d y-coordinate and var3 the  z-coordinate. Alternatively the
+d function can draw a circle at each  point and add a straight line
+d going down to the lowest point.  This function can handle data
+d that is not in the form of a matrix of values.  However if there
+d are too many x- and y- values the function will attempt  to round
+d the dataset values into a more reasonable spread of values. This
+d will result in very messy figures. However in such a case it is
+d the  impression that is needed. Many other statistical packages
+d require a full  matrix of values. This is not a problem for the
+d nowire option.  At present the state of rotating the diagram is
+d limited to interchanging the axes. This is an update of the
+d routine published in STB 51 (gr39). Users of Stata 10 may use
+d surface; for earlier versions of Stata, use surface7.
+d 
+d KW: 3d plot
+d KW: wireform
+d KW: surface plot
+d 
+d Requires: Stata version 10 (version 7 for surface7)
+d 
+d Distribution-Date: 20130809
+d 
+d Author: Adrian Mander
+d Support: email Adrian.Mander@@mrc-hnr.cam.ac.uk
+d 
+f s\surface.ado
+f s\surface.sthlp
+f s\surface7.ado
+f s\surface7.hlp
+e
+S http://www.radyakin.org/transfer/usespss/beta
+N usespss.pkg
+D  5 Mar 2014
+U 15
+d 'USESPSS': module (Windows only) to import SPSS (*.sav) data
+d 
+d USESPSS loads an SPSS-format (*.sav) dataset into memory. It
+d supports compressed and non-compressed SPSS files from Windows
+d and UNIX/Mac platforms. It preserves the variable and value
+d labels, long variable names, extended missing values, and
+d provides optimization of variable types. This version is
+d compatible with 32- and 64-bit versions of Stata for Windows
+d and is comparable in speed with commercially available
+d conversion software.
+d 
+d KW: SPSS
+d KW: sav
+d KW: data transfer
+d 
+d Requires: Stata version 9.2 or newer for Windows
+d (32- or 64-bit), date adjustment requires Stata 10 or newer
+d 
+d Distribution-Date: 20121106
+d 
+d Author: Sergiy Radyakin, Economist,
+d         Development Economics Research Group, World Bank
+d Support: email sradyakin@@worldbank.org
+d 
+f s\spss.ado
+f u\usespss.ado
+f u\usespss.hlp
+f u\usespss.dlg
+f d\desspss.ado
+f l\lusespss.mlib
+f w\webusespss.ado
+e
+S http://www.homepages.ucl.ac.uk/~ucakjpr/stata
+N gam.pkg
+D  5 Mar 2014
+U 16
+d gam. Package for generalized additive modelling.
+d Program by Patrick Royston and Gareth Ambler.
+d 
+d Distribution-Date: 20120712. Version: 2.0.11.
+d 
+d Please direct queries to Patrick Royston (pr@ctu.mrc.ac.uk)
+d 
+f g\gam.ado
+f g\gam.sthlp
+f g\gamplot.ado
+f g\gamplot.sthlp
+e
+S http://fmwww.bc.edu/RePEc/bocode/l
+N lars.pkg
+D  5 Mar 2014
+U 17
+d 'LARS': module to perform least angle regression
+d 
+d  Least Angle Regression is a model-building algorithm that
+d considers parsimony as well as prediction    accuracy.  This
+d method is covered in detail by the paper Efron, Hastie, Johnstone
+d and Tibshirani    (2004), published in The Annals of Statistics.
+d Their motivation for this method was a computationally    simpler
+d algorithm for the Lasso and Forward Stagewise regression.
+d There are many criticisms of stepwise regression, one of which is
+d that it is a "greedy" algorithm and  that the regression
+d coefficients are too large. Ridge regression is one method of
+d model-building that  shrinks the coefficients by making the sum
+d of the squared coefficients less than some constant. The    Lasso
+d is similar but the constaint is that the sum of the "mod"
+d coefficients is less than a constant.    One implication of this
+d will be that the solution will contain coefficients that are
+d exactly 0 and    hence have the property of parsimony i.e. a
+d simpler model.
+d 
+d KW: least angle regression
+d KW: lasso
+d KW: forward stagewise regression
+d KW: model-building
+d KW: parsimony
+d 
+d Requires: Stata version 9.2
+d 
+d Distribution-Date: 20140212
+d 
+d Author: Adrian Mander
+d Support: email Adrian.Mander@@mrc-hnr.cam.ac.uk
+d 
+f l\lars.ado
+f l\lars.sthlp
+e

@@ -1,0 +1,65 @@
+.-
+help for ^bugsres^
+.-
+
+
+^syntax^
+------
+^bugsres^ , ^file^(filename) [^clear^]
+
+
+
+^Description^
+-----------
+bugsres imports summary statistics from BUGS or WinBUGS into Stata.
+The command is particularly helpful for running Monte Carlo simulations of 
+BUGS analysis called from within Stata.
+
+You can call BUGS from within Stata using:
+ ! "c:\Program Files\WinBUGS14\WinBUGS14.exe" /PAR "d:/work/script.odc"
+where "c:\Program Files\WinBUGS14\WinBUGS14.exe" should be wherever your 
+version of BUGS is installed and "d:/work/script.odc" should be a BUGS .odc 
+batch file that specifies or points to the model, initial values, etc.
+
+
+^Options^
+-------
+
+^file^(filename)	is required to tell Stata which file to import. This will be
+			the output log file from BUGS containing summary statistics results
+			specified using display('log') and save(d:/work/results) in the bugs script.
+
+^clear^			specifies that the current dataset in memory is cleared to make 
+			room for the imported dataset.
+
+
+^Examples^
+--------
+
+bugsres , file("d:\work\results.txt") clear
+
+bugsdat2 a b, nobs width(10) format(%11.8f) linesize(200)
+! "c:\Program Files\WinBUGS14\WinBUGS14.exe" /PAR "d:/work/script.odc"
+bugsres, file("d:\work\results.txt") clear
+
+more examples can be found at www.personal.leeds.ac.uk/~hssdg/Stata
+
+
+^See also^
+--------
+
+bugsdat2, bugsout2 
+
+
+^Author^
+------
+Darren Greenwood
+Biostatistics Unit
+Centre for Epidemiology & Biostatistics
+University of Leeds
+30-32 Hyde Terrace
+Leeds
+LS2 9LN
+UK
+
+email: d.c.greenwood@leeds.ac.uk

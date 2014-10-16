@@ -1,0 +1,105 @@
+{smcl}
+{* 27Jun2007}{...}
+{hline}
+help for {hi:lgraph} (Requires Version 9) {right:(Version 2.0.0)}
+{hline}
+
+{title:Tool for drawing line graphs}
+
+{p 8 22 2}{cmd:lgraph} {it:yvar} {it:xvar} [{it:groupvar}] [{cmd:if}
+{it:exp}] [{cmd:in} {it:range}] [{it:weight}] [{cmd:, }{cmdab:err:ortype:(sd|se|}{it:#}{cmd:)} {cmdab:nol:egend} {cmdab:sep:arate:(}{it:#}{cmd:)} 
+{cmd:median} {cmdab:q:uantile(}{it:# #}{cmd:)} {cmd:minmax} {cmd:bw} {cmd:fit(lfit|qfit)} {cmdab:nom:arker}  
+{cmdab:lop:tions(}{it:line_options}{cmd:)} {cmdab:eop:tions(}{it:error_bar_options}{cmd:)} {cmdab:fop:tions(}{it:fitted_line_options}{cmd:)} {it:other_graph_options}]
+
+{p 4 4 2}
+where {it:yvar} is the variable for which the mean will be plotted on the y-axis, and {it:xvar} is the variable that
+ is plotted on the x-axis. It has to be a numeric variable. {it:groupvar} is the variable by which the 
+lines will be grouped. It must be a numeric variable with group names given in their value labels. 
+
+
+{title:Description}
+
+{p 4 4 2}
+{cmd:lgraph} is a tool for drawing line graphs with optional error bars optionally stratified by a variable. The same can be achieved 
+by collapsing the data using {cmd:collapse} and {cmd:twoway}. This command provides a shortcut 
+for drawing common line graphs. Most options that are available to {cmd:twoway} are also available with {cmd:lgraph}. 
+
+{title:Options}
+
+{p 4 8 2}{cmd:errortype(sd|se|}{it:#}{cmd:)} specifies what should make up the error bars. {cmd:sd} gives 
+standard deviations. {cmd:se} gives standard error, and {it:#} specifies the {it:#} % confidence interval of the mean. 
+It can take any value from 50 to 100. 
+
+{p 4 8 2}{cmd:nolegend} specifies that the legend should not be given.
+
+{p 4 8 2}{cmd:separate(}{it:#}{cmd:)} causes the points that are plotted to be slightly shifted 
+so that the error bars do not overlap. {it:#} will usually be in the range of 0.001 to 0.05. By default, points are not shifted. 
+
+{p 4 8 2}{cmd:median} causes the median to be plotted instead of the mean
+
+{p 4 8 2}{cmdab:q:uantile(}{it:# #}{cmd:)} causes quantiles to be plotted as error bars. Specify the upper and 
+lower quantiles in the bracket separated by a space, eg {cmd:quantile(25 75)}. 
+
+{p 4 8 2}{cmd:minmax} causes the minimum and maximum values to be plotted as error bars. 
+
+{p 4 8 2}{cmd:bw} causes the graph to be plotted in black and white. 
+
+{p 4 8 2}{cmd:fit(lfit|qfit)} causes a fitted line to be plotted instead of the connected line. Two types of fit 
+are possible: linear and quadratic, corresponding to the {help twoway_lfit} and {help twoway_qfit} commands. 
+The fit of the lines are weighted by the number of observations that go into each plotted mean, corresponding to using the 
+{it: aweight} option in {cmd: reg}. {it} Note that in fact all {cmd: twoway} subcommands can be used. Even a bar graph
+can be produced when combined with the {cmd: separate} option. {sf}
+
+{p 4 8 2}{cmd:nomarker} suppresses the plotting of markers in the graph, thereby rendering it a {it: line} graph 
+instead of a {it: connected} graph. 
+
+{p 4 8 2}{cmd:loptions(}{it:line_options}{cmd:)} allows extra options to be passed
+to {help twoway_connected} concerning the drawing of the lines. Options should be preceeded 
+by a number to indicate which line (unless only one line is drawn) it refers to and 
+separated by a semicolon for different lines. e.g. {cmd: loptions(3 mcolor(red) lcolor(red) ;1 mcolor(green) lcolor(green)) } will 
+cause the first line to be drawn in red and the second line to be drawn in green. 
+Here the first line refers to the group whose {it:groupvar} = 3, and the 
+second refers to the group whose {it:groupvar} = 1. If no number preceds the options, the option will be applied to all lines.  
+e.g. {cmd: loptions(lpat(dot) ; 1 lcolor(green))} causes all lines to be dotted and the line whose {it:groupvar} = 1 to be
+plotted in green. 
+
+{p 4 8 2}{cmd:eoptions(}{it:line_options}{cmd:)} allows extra options to be passed
+to {help twoway_rcap} concerning the drawing of the error bars. The same format applies as in {cmd: loptions}.  
+
+{p 4 8 2}{cmd:foptions(}{it:line_options}{cmd:)} allows extra options to be passed to {help twoway_lfit} or 
+{help twoway_qfit} for the fitted lines. Again the same format applies as in {cmd: loptions}. 
+
+{p 4 8 2}{it:other_graph_options}. Include all other graph options here. 
+e.g. {cmd:ytitle("Mean number of men")}, {cmd:legend(on order(1 "Australia" 2 "Brazil"))}, etc... Titles and 
+legends given here will override the default. 
+
+{title:Examples:  Simple line graph plotting the mean price against 1978 repair record, stratified by origin}
+
+{p 4 8 2}{cmd:. sysuse auto}
+
+{p 4 8 2}{cmd:. lgraph price rep78 foreign, errortype(sd) separate(0.01) }
+
+    To plot median and inter-quartile range instead of the mean and standard deviation... 
+
+{p 4 8 2}{cmd:. lgraph price rep78 foreign, median q(25 75) separate(0.01) } 
+
+    To make the lines thicker and to suppress the marker... 
+
+{p 4 8 2}{cmd:. lgraph price rep78 foreign, errortype(sd) separate(0.01) scale(1.4) nomarker } 
+
+    To fit a quadratic line in black and white... 
+
+{p 4 8 2}{cmd:. lgraph price rep78 foreign, fit(qfit) bw } 
+
+    To draw even a bar graph... 
+
+{p 4 8 2}{cmd:. lgraph price rep78 foreign, fit(bar) fop(barw(.4)) sep(.1) nomarker legend(on order(3 "Domestic" 4 "Foreign"))}
+
+
+{title:Author}
+
+{p 4 8 2} Timothy Mak
+
+{p 4 8 2} Institute of Psychiatry, King's College London
+
+{p 4 8 2} 27 June 2007

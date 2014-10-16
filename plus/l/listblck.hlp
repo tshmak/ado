@@ -1,0 +1,60 @@
+.-
+help for ^listblck^                                           (STB-50: dm68)
+.-
+
+Block-wise display of values of variables
+----------------- ------------------------
+
+        ^listblck^ [varlist] [^if^ exp] [^in^ range] 
+                   [^, r^epeat^(^#^) w^idth^(^#^) nol^abel ^noo^bs]
+
+
+Description
+-----------
+
+^listblck^ is an alternative to ^list^ that displays the values of variables 
+in varlist for selected cases in an "blocks-of-variables" format. If no varlist
+is specified, the values of all the variables are displayed.      
+
+
+Options
+-------
+
+^repeat(^#^)^ specifies the number of leading variables repeated at the 
+   beginning of each block. Defaults to 0.
+
+^width(^#^)^ specifies the display linesize. By default, ^listblck^ uses the 
+   current setting of ^display linesize^.
+
+^nol^abel causes the numeric codes rather than label values to be displayed.
+
+^noo^bs suppresses printing of the observation numbers.
+
+
+Examples
+--------
+
+   . ^listblck^
+   . ^listblck make price turn length^
+   . ^listblck make price turn length trunk mpg foreign in 1/20, rep(1)^
+                           
+                                
+Author
+------
+
+        Jeroen Weesie
+        Dept of Sociology
+        Utrecht University
+        J.weesie@@fss.uu.nl
+  
+This project was supported by grant PGS 50-370 of the Netherlands Organization
+for Scientific Research. 
+    
+
+Also See
+--------        
+
+    STB:  STB-50 dm68
+ Manual:  [R] list
+On-line:  help on @list@, @listby@, @stlist@, and @xtlist@
+

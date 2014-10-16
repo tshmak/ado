@@ -1,0 +1,52 @@
+StataFileTM:00001:01100:GREC:                          :
+00003:00003:00001:
+*! classname: twowaygraph_g
+*! family: twoway
+*! date: 18 Mar 2013
+*! time: 16:59:26
+*! graph_scheme: s2color
+*! naturallywhite: 1
+*! end
+
+// File created by Graph Editor Recorder.
+// Edit only if you know what you are doing.
+
+.plotregion1.AddTextBox added_text editor 153.0452557391717 2012.365347404404
+.plotregion1.added_text_new = 9
+.plotregion1.added_text_rec = 9
+.plotregion1.added_text[9].style.editstyle  angle(default) size(medsmall) color(black) horizontal(left) vertical(middle) margin(zero) linegap(zero) drawbox(no) boxmargin(zero) fillcolor(bluishgray) linestyle( width(thin) color(black) pattern(solid)) box_alignment(east) editcopy
+.plotregion1.added_text[9].text = {}
+.plotregion1.added_text[9].text.Arrpush Iceland
+// editor text[9] edits
+
+.plotregion1.AddLine added_lines editor 2011.632306607611 152.5594649250312 2008.530980159641 149.676930854337
+.plotregion1.added_lines_new = 3
+.plotregion1.added_lines_rec = 3
+.plotregion1.added_lines[3].style.editstyle  linestyle( width(thin) color(black) pattern(solid)) headstyle( symbol(circle) linestyle( width(thin) color(black) pattern(solid)) fillcolor(black) size(medium) angle(stdarrow) backsymbol(none) backline( width(thin) color(black) pattern(solid)) backcolor(black) backsize(zero) backangle(stdarrow)) headpos(head) editcopy
+// edits
+
+.plotregion1.AddTextBox added_text editor 107.5376526525939 2009.489571970832
+.plotregion1.added_text_new = 10
+.plotregion1.added_text_rec = 10
+.plotregion1.added_text[10].style.editstyle  angle(default) size(medsmall) color(black) horizontal(left) vertical(middle) margin(zero) linegap(zero) drawbox(no) boxmargin(zero) fillcolor(bluishgray) linestyle( width(thin) color(black) pattern(solid)) box_alignment(east) editcopy
+.plotregion1.added_text[10].text = {}
+.plotregion1.added_text[10].text.Arrpush Japan
+// editor text[10] edits
+
+.plotregion1.added_text[10].DragBy .6859486341263903 .7894285503924254
+// editor text[10] reposition
+
+.plotregion1.AddLine added_lines editor 2010.053449506826 106.1787709766804 2008.305429145243 106.5168730513211
+.plotregion1.added_lines_new = 4
+.plotregion1.added_lines_rec = 4
+.plotregion1.added_lines[4].style.editstyle  linestyle( width(thin) color(black) pattern(solid)) headstyle( symbol(circle) linestyle( width(thin) color(black) pattern(solid)) fillcolor(black) size(medium) angle(stdarrow) backsymbol(none) backline( width(thin) color(black) pattern(solid)) backcolor(black) backsize(zero) backangle(stdarrow)) headpos(head) editcopy
+// edits
+
+.plotregion1.added_text[1].DragBy 9.857564906313115 -.845816303991863
+// editor text[1] reposition
+
+.plotregion1.added_text[1].DragBy -3.69047792945922 -.4511020287956669
+// editor text[1] reposition
+
+
+// <end>

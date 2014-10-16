@@ -1,0 +1,100 @@
+{smcl}
+{* *! version 1.0.0  22May2006}{...}
+{cmd:help wbbgr} 
+{hline}
+
+{title:Title}
+
+{p2colset 5 20 22 2}{...}
+{p2col :{hi:wbbgr} {hline 2}}Brooks-Gelman-Rubin plot for a single parameter{p_end}
+{p2colreset}{...}
+
+{title:Syntax}
+
+{phang2}
+{cmd:wbbgr}
+{varname} 
+{ifin}
+{cmd:,} 
+{opt i:d(varname)} 
+[ {it:options} ]
+
+{col 8}{it:options}{col 32}description
+{col 8}{hline 72}
+{col 8}{cmdab:i:d(}{it:varname}{cmd:)}{col 32}id variable for chain
+{col 8}{cmdab:ti:me(}{it:varname}{cmd:)}{col 32}time variable for the plot
+{col 8}{cmdab:b:in(}{it:#}{cmd:)}{col 32}bin size for the plot
+{col 8}{cmdab:v:ariance}{col 32}plot based on variances rather than intervals
+{col 8}{cmdab:byc:hain}{col 32}plot each chain rather than their average
+{col 8}{cmdab:g:options(}{it:string}{cmd:)}{col 32}options for the individual plots
+{col 8}{cmdab:cg:options(}{it:string}{cmd:)}{col 32}options combining plots
+{col 8}{cmdab:s:aving(}{it:string,replace}{cmd:)}{col 32}graphics file for output
+{col 8}{cmdab:e:xport(}{it:string,replace}{cmd:)}{col 32}graphics file for a non-standard format
+{col 8}{cmdab:ds:aving(}{it:string,replace}{cmd:)}{col 32}data file for the plotting points
+{col 8}{hline 72}
+
+{title:Description}
+{pstd}
+{cmd:wbbgr} creates Brooks-Gelman-Rubin plots for assessing the convergence of parallel chains. 
+The plots assume that the chains start from different and over-dispersed initial values.
+As the chains come closer into agreement the variabaility of the pooled chains should be similar to 
+the average variability of the individual chains. The original suggestion was for a plot based on two
+estimates of the variance of the posterior distribution, one pooling all of the chains and the other averaging the 
+within chain variability. The ratio of the two variances was called R. Doubt was expressed about 
+the interpretation of this measure when the posterior is non-normal and a robust alternative was suggested
+based on the interval between the 10% and 90% centiles, so that R = the ratio of 
+the interval from all data to the average interval of the separate chains. 
+In each case R is calculated for
+increasing chain sizes. For a subchain consisting of the first N values, R is calculated from the 
+second half of the subchain and then plotted against N. N is taken to be 1,2... times 
+'bin'. In both plots R should approach 1 if the chains have converged. A second plot shows the
+variance or interval based on all chains pooled (solid line) and on the average of 
+the subchains (dashed line). These should stabilise into horizontal lines.
+
+{title:Options}
+{phang}{opt i:d(varname)}
+variable identifying the chains as 1,2,3... 
+
+{phang}{opt ti:me(varname)}
+variable denoting the ordering within the chains
+
+{phang}{opt b:in(#)}
+size of the bins. Default is chain length/20
+
+{phang}{opt v:ariance}
+plot based on variances. Default is intervals
+
+{phang}{opt byc:hain}
+show each chain's estimate instead of the average across chains in the second plot.
+
+{phang}{opt g:options(string)}
+{help graph} options for plotting each graph. 
+
+{phang}{opt cg:options(string)}
+{help graph combine} options to control the combining of the two plots. 
+
+{phang}{opt s:aving(string,replace)}
+filename (.gph) for saving the final plot.
+
+{phang}{opt e:xport(string,replace)}
+filename for exporting the final plot in a non-standard format such as eps or png. 
+The format depends of the choice of file extension, see {help graph export}
+
+{phang}{opt ds:aving(string,replace)}
+Stata data (.dta) file for saving the plotting points.
+
+{title:Example}
+{phang}{cmd:. wbbgr alpha , id(chain) }{p_end}
+
+{title:Reference}
+{phang}
+The general method is described in {p_end}
+{col 8}Brooks S & Gelman A, 
+{col 8}General methods for monitoring convergence of iterative simulations
+{col 8}{it:Journal of Computational and Graphical Statistics},1998:7;434-455. 
+{phang}The WinBUGS Manual is available from {browse www.mrc-bsu.cam.ac.uk/bugs}. 
+See {help winbugs} for a list of all of the commands for running WinBUGS from Stata.{p_end}
+
+{title:Author}
+{phang} John Thompson, Department of Health Sciences, 
+University of Leicester. Please report any errors to {browse "mailto:john.thompson@le.ac.uk":john.thompson@le.ac.uk}.

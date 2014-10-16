@@ -1,0 +1,58 @@
+{smcl}
+{* *! version 1.0.0  22May2006}{...}
+{cmd:help wbdata} 
+{hline}
+
+{title:Title}
+
+{p2colset 5 20 22 2}{...}
+{p2col :{hi:wbdata} {hline 2}}writes mixed data as a WinBUGS list{p_end}
+{p2colreset}{...}
+
+{title:Syntax}
+
+{phang2}
+{cmd:wbdata}
+{cmd:,} {opt c:ontents(string)} [ {it:options} ]
+
+{col 8}{it:options}{col 32}description
+{col 8}{hline 72}
+{col 8}{cmdab:c:ontents(}{it:string}{cmd:)}{col 32}mixed structures to be listed
+{col 8}{cmdab:s:aving(}{it:string,replace}{cmd:)}{col 32}text file for output
+{col 8}{cmdab:nop:rint}{col 32}suppress display to the results window
+{col 8}{hline 72}
+
+{title:Description}
+{pstd}
+{cmd:wbdata} writes data to the results window and/or a text file as an R style
+mixed list of data types ready to be read into WinBUGS. The contents of the list
+are specified by combining calls to {help wbscalar}, {help wbvector} and {help wbstructure}.
+
+{title:Options}
+
+{phang}{opt c:ontents(string)}
+mixed structures to be listed. The contents are specified
+by a string containing calls to the commands {help wbscalar}, {help wbvector} and {help wbstructure}.
+The component commands are separated by +'s.
+
+{phang}{opt s:aving(string,replace)}
+text filename for file
+output. Replace is necessary if the file already exists.
+
+{phang}{opt nop:rint}
+suppresses display in the results window.
+
+
+{title:Example}
+with appropriate scalars and vectors defined
+{phang}{cmd:. wbdata , c(wbscalar, sc(a b) f(%4.0f) + wbvector x in 1/3)}{p_end}
+would produce
+{phang}list( a=  3, b=  1, x=c(  3.456, 2.401,  5.002)){p_end}
+
+{title:Reference}
+{phang}The WinBUGS Manual is available from {browse www.mrc-bsu.cam.ac.uk/bugs}. 
+See {help winbugs} for a list of all of the commands for running WinBUGS from Stata.
+
+{title:Author}
+{phang} John Thompson, Department of Health Sciences, 
+University of Leicester. Please report any errors to {browse "mailto:john.thompson@le.ac.uk":john.thompson@le.ac.uk}.
