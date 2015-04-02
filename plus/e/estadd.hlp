@@ -1,5 +1,5 @@
 {smcl}
-{* 08oct2009}{...}
+{* 13sep2013}{...}
 {hi:help estadd}{right:also see: {helpb esttab}, {helpb estout}, {helpb eststo}, {helpb estpost}}
 {right: {browse "http://repec.org/bocode/e/estout"}}
 {hline}
@@ -20,7 +20,7 @@
 
 {marker subcommands}
     {it:subcommands}{col 26}description
-    {hline 64}
+    {hline 65}
     Elementary
       {helpb estadd##local:{ul:loc}al} {it:name ...}{col 26}{...}
 add a macro
@@ -62,7 +62,7 @@ descriptives of the dependent variable
 
     Other
       {helpb estadd##margins:margins}{col 26}{...}
-add results from {cmd:margins} (Stata 11)
+add results from {cmd:margins} (Stata 11 or newer)
 
     {help estadd##spost:SPost}
       {helpb estadd##brant:brant}{col 26}{...}
@@ -79,11 +79,11 @@ add results from {cmd:prchange} (if installed)
 add results from {cmd:prvalue} (if installed)
       {helpb estadd##asprvalue:asprvalue}{col 26}{...}
 add results from {cmd:asprvalue} (if installed)
-    {hline 64}
+    {hline 65}
 
 {marker opts}
     {it:{help estadd##options:options}}{col 26}description
-    {hline 64}
+    {hline 65}
       {cmdab:r:eplace}{col 26}{...}
 permit overwriting existing {cmd:e()}'s
       {cmdab:p:refix(}{it:string}{cmd:)}{col 26}{...}
@@ -92,7 +92,7 @@ specify prefix for names of added results
 suppress output from subcommand (if any)
       {it:subcmdopts}{col 26}{...}
 subcommand specific options
-    {hline 64}
+    {hline 65}
 
 
 {title:Description}
@@ -917,7 +917,7 @@ for an example.
 
 {title:Author}
 
-{p 4 4 2} Ben Jann, ETH Zurich, jannb@ethz.ch
+{p 4 4 2} Ben Jann, Institute of Sociology, University of Bern, jann@soz.unibe.ch
 
 
 {title:Also see}

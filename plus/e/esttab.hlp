@@ -1,5 +1,5 @@
 {smcl}
-{* 08oct2009}{...}
+{* 02jun2014}{...}
 {hi:help esttab}{right:also see: {helpb estout}, {helpb eststo}, {helpb estadd}, {helpb estpost}}
 {right: {browse "http://repec.org/bocode/e/estout"}}
 {hline}
@@ -101,6 +101,8 @@ produce a minimally formatted table
     {help esttab##label:Labeling}
       {cmdab:l:abel}{col 26}{...}
 make use of variable labels
+      {cmdab:interact:ion:(}{it:str}{cmd:)}{col 26}{...}
+specify interaction operator
       {cmdab:ti:tle:(}{it:string}{cmd:)}{col 26}{...}
 specify a title for the table
       {cmdab:mti:tles}[{cmd:(}{it:list}{cmd:)}]{col 26}{...}
@@ -146,6 +148,10 @@ display the executed {helpb estout} command
     {help esttab##advanced:Advanced}
       {cmdab:d:rop:(}{it:list}{cmd:)}{col 26}{...}
 drop individual coefficients
+      {cmdab:noomit:ted}{col 26}{...}
+drop omitted coefficients
+      {cmdab:nobase:levels}{col 26}{...}
+drop base levels of factor variables
       {cmdab:k:eep:(}{it:list}{cmd:)}{col 26}{...}
 keep individual coefficients
       {cmdab:o:rder:(}{it:list}{cmd:)}{col 26}{...}
@@ -154,8 +160,6 @@ change order of coefficients
 match the models' equations
       {cmd:eform}{col 26}{...}
 report exponentiated coefficients
-      {cmdab:m:argin}{col 26}{...}
-report marginal effects/elasticities
       {cmdab:uns:tack}{col 26}{...}
 place multiple equations in separate columns
       {it:estout_options}{col 26}{...}
@@ -418,6 +422,12 @@ to produce a plain table including significance stars.
 variable names (and estimation set titles be used instead of
 estimation set names). Furthermore, {cmd:label} prints "Constant"
 instead of "_cons".
+
+{p 4 8 2}
+{cmd:interaction(}{it:string}{cmd:)} specifies the string to be used 
+as delimiter for interaction terms (only relevant in Stata 11 or newer). The
+default is {cmd:interaction(" # ")}. For {cmd:tex} and {cmd:booktabs} the 
+default is {cmd:interaction(" $\times$ ")}.
 {p_end}
 {marker title}
 {p 4 8 2}
@@ -481,7 +491,8 @@ output format. The default format is {cmd:smcl} unless
 depends on the filename's suffix ({cmd:smcl} for ".smcl", {cmd:csv} 
 for ".csv", {cmd:rtf} for ".rtf", 
 {cmd:html} for ".htm" or ".html", {cmd:tex} for ".tex", and {cmd:fixed}
-for all other filenames).
+for all other filenames). To override the default behavior, specify one of the 
+following format options.
 
 {p 8 8 2}
 {cmd:smcl} produces a {help SMCL} formatted table to be displayed in the 
@@ -634,6 +645,14 @@ equation names, and not to the original equation names in the models,
 when using the {cmd:equations()} option to match equations.
 
 {p 4 8 2}
+{cmd:noomitted} drops omitted coefficients (only relevant in Stata 11 or 
+newer).
+
+{p 4 8 2}
+{cmd:nobaselevels} drops base levels of factor variables (only relevant 
+in Stata 11 or newer).
+
+{p 4 8 2}
 {cmd:keep(}{it:keeplist}{cmd:)} selects the coefficients to be
 included in the table. {it:keeplist} is specified analogous to
 {it:droplist} in {cmd:drop()} (see above).
@@ -658,14 +677,6 @@ exponent of a coefficient is displayed in lieu of the untransformed
 coefficient; standard errors and confidence intervals are transformed
 as well. Note that the intercept is dropped in eform-mode, unless
 {cmd:constant} is specified.
-
-{p 4 8 2}
-{cmd:margin} indicates that the marginal effects or elasticities be
-reported instead of the raw coefficients. A prerequisite for this
-option to work correctly is that {cmd:mfx} has been applied to a
-model prior to storing its results (see help {helpb mfx}). Note that
-the standard errors, etc. are transformed as well. Furthermore, the
-intercept is dropped, unless {cmd:constant} is specified.
 
 {p 4 8 2}
 {cmd:unstack} specifies that the individual equations from
@@ -693,7 +704,9 @@ and {cmd:obslast}.
 Other {cmd:estout} options that should be used with care are
 {cmd:begin()}, {cmd:delimiter()}, {cmd:end()}, {cmd:prehead()},
 {cmd:posthead()}, {cmd:prefoot()}, {cmd:postfoot()}, {cmd:mlabels()},
-and {cmd:varlabels()}.
+and {cmd:varlabels()}. Furthermore, note that {cmd:estout}'s {cmd:style()} 
+option does not have much effect because most options that would be affected 
+by {cmd:style()} are set explicitly by {cmd:esttab}.
 
 {marker fmt}
 {dlgtab:Numerical formats}
@@ -888,7 +901,7 @@ Printing beta coefficients:
 {title:Author}
 
 {p 4 4 2}
-Ben Jann, ETH Zurich, jannb@ethz.ch
+Ben Jann, Institute of Sociology, University of Bern, jann@soz.unibe.ch
 
 {marker als}
 {title:Also see}

@@ -1,163 +1,23 @@
 *! {smcl}
 *! {c TLC}{dup 78:{c -}}{c TRC}
-*! {c |} {bf:Beginning of file -globals_export.mata-}{col 83}{c |}
-*! {c BLC}{dup 78:{c -}}{c BRC}
-////////////////////////////////////////////////////////////////////////////////
-// Looks for global macros and writes to the dofile
-mata:
-*! {smcl}
-*! {marker globals_export}{bf:function -{it:globals_export}- in file -{it:globals_export.mata}-}{asis}
-void globals_export(|string scalar outname , real scalar ou_fh)
-    {
-    
-    real   scalar ismacro, forbidden, in_fh, isnewfile
-    string scalar line, macname, macvalu, typeofmacro, REGEX, FORBIDDEN
-    string scalar logname
-
-    if (outname == J(1,1,"")) outname = parallel_randomid(10,"",1,1,1)
-    
-    if (ou_fh == J(1,1,.)) {
-        ou_fh = fopen(outname, "w", 1)
-        isnewfile = 1
-    }
-    else isnewfile = 0
-    
-    // Writing log
-    logname = parallel_randomid(10,"",1,1,1)
-    
-    stata("cap log close log"+logname)
-    stata("log using "+logname+".log, text replace name(log"+logname+")")
-    stata("noisily macro dir")
-    stata("log close log"+logname)
-    
-    in_fh = fopen(logname+".log", "r", 1)
-    
-    // Step 1
-    REGEX = "^([0-9a-zA-Z_]+)([:][ ]*)(.*)"
-    FORBIDDEN = "^(S[_]FNDATE|S[_]FN|F[0-9]|S[_]level|S[_]ADO|S[_]FLAVOR|S[_]OS|S[_]MACH)([ ]*.*$)"
-    
-    line = fget(in_fh)
-    while (line!=J(0,0,""))
-    {
-        // Check wheater it is a macro or not (and not system macros)
-        forbidden = regexm(line, FORBIDDEN)
-        ismacro = regexm(line, REGEX)
-        
-        if (ismacro & !forbidden)
-        {
-            macname = regexs(1)
-            
-            // Checks wheather if it is a local or global macro
-            if (!regexm(macname, "^[_]"))
-            {
-                macvalu = st_macroexpand("$"+macname)
-                typeofmacro = "global "
-                line = typeofmacro+macname+" "+macvalu
-                fput(ou_fh, line)
-            }
-        }
-        line = fget(in_fh)
-    }
-    
-    fclose(in_fh)
-    unlink(logname+".log")
-    if (isnewfile) fclose(ou_fh)
-}
-end
-*! {smcl}
-*! {c TLC}{dup 78:{c -}}{c TRC}
-*! {c |} {bf:End of file -globals_export.mata-}{col 83}{c |}
-*! {c BLC}{dup 78:{c -}}{c BRC}
-*! {smcl}
-*! {c TLC}{dup 78:{c -}}{c TRC}
-*! {c |} {bf:Beginning of file -normalizepath.mata-}{col 83}{c |}
-*! {c BLC}{dup 78:{c -}}{c BRC}
-mata:
-*! {smcl}
-*! {marker normalizepath}{bf:function -{it:normalizepath}- in file -{it:normalizepath.mata}-}{asis}
-transmorphic normalizepath(
-    string scalar path,
-    | real scalar exportaslocal
-    )
-    {
-    
-    string scalar filename, fileext, fullpath, filedir, curpath
-    string rowvector parts
-    real scalar i, isfile
-    
-    if (exportaslocal == J(1,1,.)) exportaslocal = 0
-        
-    // Replacing folder sep
-    fullpath = subinstr(path, "\", "/")
-    fullpath = subinstr(path, `"""', "")
-    
-    // Verifying if there is anything
-    if (fileexists(fullpath)) isfile = 1
-    else if (direxists(fullpath)) isfile = 0
-    else _error(601)
-    
-    curpath = regexr(pwd(), "/$", "")
-    
-    if (isfile) {
-        if(fileexists(pwd()+fullpath))
-            fullpath = subinstr(pwd(),"\","/")+fullpath
-    }
-    else {
-        if(direxists(pwd()+fullpath))
-            fullpath = subinstr(pwd(),"\","/")+fullpath
-    }
-    
-    // Cleaning ".." and spliting (parsing)
-    parts = tokens(fullpath,"/")
-    if (cols(parts) >= 3) {
-        for(i=3;i<=cols(parts);i++) {
-            if (parts[i] == "..") parts[(i-2)..i] = J(1,3,"")
-        }
-    }
-    
-    // Merging all
-    fullpath = ""
-    for(i=1;i<=cols(parts);i++) fullpath = fullpath+parts[i]
-    
-    // Replacing "//"
-    while (strlen(fullpath) != strlen(regexr(fullpath, "//", "/")))
-        fullpath = regexr(fullpath, "//", "/")
-    
-    // Last check
-    if (isfile) {
-        if(!fileexists(fullpath)) _error(1)
-    }
-    else {
-        if(!direxists(fullpath)) _error(1)
-    }
-    
-    // Extracting details
-    pathsplit(fullpath, filedir, filename)
-    fileext = pathsuffix(filename)    
-    
-    if (exportaslocal) {
-        st_local("filedir",filedir)
-        st_local("filename",filename)
-        st_local("fullpath",fullpath)
-        st_local("fileext",fileext)
-    }
-    else  return((path\fullpath\fileext\filename))
-    
-}
-end
-*! {smcl}
-*! {c TLC}{dup 78:{c -}}{c TRC}
-*! {c |} {bf:End of file -normalizepath.mata-}{col 83}{c |}
-*! {c BLC}{dup 78:{c -}}{c BRC}
-*! {smcl}
-*! {c TLC}{dup 78:{c -}}{c TRC}
 *! {c |} {bf:Beginning of file -parallel_break.mata-}{col 83}{c |}
 *! {c BLC}{dup 78:{c -}}{c BRC}
 *! version 0.13.10.2  2oct2013
-*! Aborts execution and returns to the current instancee
+*! author: George G. Vega Yon
+
+
 mata:
-*! {smcl}
-*! {marker parallel_break}{bf:function -{it:parallel_break}- in file -{it:parallel_break.mata}-}{asis}
+{smcl}
+*! {marker parallel_break}{bf:function -{it:parallel_break}- in file -{it:parallel_break.mata}-}
+*! {back:{it:(previous page)}}
+*!{dup 78:{c -}}
+*!{col 4}{it:Stops the cluster if the mother instance has requiered so.}
+*!{col 4}{bf:parameters:}
+*!{col 6}{bf:parallelid}{col 20}Parallel process id. 
+*!{col 6}{bf:pllinstance}{col 20}Parallel instance id.
+*!{col 4}{bf:returns:}
+*!{col 6}{it:Stops the cluster.}
+*!{dup 78:{c -}}{asis}
 void parallel_break(
     |string scalar parallelid, 
     string scalar pllinstance
@@ -198,8 +58,17 @@ void parallel_break(
     }
 }
 
-*! {smcl}
-*! {marker _parallel_break}{bf:function -{it:_parallel_break}- in file -{it:parallel_break.mata}-}{asis}
+{smcl}
+*! {marker _parallel_break}{bf:function -{it:_parallel_break}- in file -{it:parallel_break.mata}-}
+*! {back:{it:(previous page)}}
+*!{dup 78:{c -}}
+*!{col 4}{it:Stops the cluster if the mother instance has requiered so.}
+*!{col 4}{bf:parameters:}
+*!{col 6}{bf:parallelid}{col 20}Parallel id. 
+*!{col 6}{bf:pllinstance}{col 20}Parallel instance
+*!{col 4}{bf:returns:}
+*!{col 6}{it:Returns -1- if the mother process has stop, else returns -0-.}
+*!{dup 78:{c -}}{asis}
 real scalar _parallel_break(
     |string scalar parallelid, 
     string scalar pllinstance
@@ -237,6 +106,7 @@ real scalar _parallel_break(
     return(0)
 }
 end
+
 *! {smcl}
 *! {c TLC}{dup 78:{c -}}{c TRC}
 *! {c |} {bf:End of file -parallel_break.mata-}{col 83}{c |}
@@ -245,42 +115,63 @@ end
 *! {c TLC}{dup 78:{c -}}{c TRC}
 *! {c |} {bf:Beginning of file -parallel_clean.mata-}{col 83}{c |}
 *! {c BLC}{dup 78:{c -}}{c BRC}
+*! vers 0.14.3 18mar2014
+*! author: George G. Vega
+
 mata:
-*! {smcl}
-*! {marker parallel_clean}{bf:function -{it:parallel_clean}- in file -{it:parallel_clean.mata}-}{asis}
+
+{smcl}
+*! {marker parallel_clean}{bf:function -{it:parallel_clean}- in file -{it:parallel_clean.mata}-}
+*! {back:{it:(previous page)}}
+*!{dup 78:{c -}}
+*!{col 4}{it:Removes parallel auxiliry files}
+*!{col 4}{bf:parameters:}
+*!{col 6}{bf:parallelid}{col 20}Parallel of the id instance.
+*!{col 6}{bf:cleanall}{col 20}Whether to remove all files no matter what parallel id.
+*!{col 6}{bf:force}{col 20}Forces parallel to remove files even if sandbox is working.
+*!{col 4}{bf:returns:}
+*!{col 6}{it:Removes all auxiliary files.}
+*!{dup 78:{c -}}{asis}
 void parallel_clean(|string scalar parallelid, real scalar cleanall, real scalar force) {
     
     real scalar i ;
-    string colvector files, sbfiles;
+    string colvector parallelids, sbfiles;
     
     // Checking arguments
-    if (parallelid == J(1,1,"")) parallelid = st_global("r(pll_id)");
+    if (parallelid == J(1,1,"")) parallelid = st_global("LAST_PLL_ID");
     if (cleanall == J(1,1,.)) cleanall = 0;
     if (force==J(1,1,.)) force = 0;
     
-    if (!cleanall & strlen(parallelid)) // If its not all
-    { 
-        files = dir("","files","__pll"+parallelid+"_*") \ dir("","files","l__pll"+parallelid+"_*")
+    /* Getting the list of parallel ids that should be removed */
+    if (cleanall)
+    {
+        parallelids = dir(pwd(),"files","__pll*") \ dir(pwd(),"files","l__pll*") \ dir(pwd(),"dirs","__pll*")
+
+        for(i=1;i<=length(parallelids);i++)
+            parallelids = regexr(regexr(parallelids,"^l?__pll",""),"_.+$","")
+        parallelids = uniqrows(parallelids)
     }
-    else if (cleanall)
-    {           // If its all
-        files = dir("","files","__pll*") \ dir("","files","l__pll*")
-    }
+    else parallelids = parallelid
+
     
     /* Extracting files that are in use */
-    if (!force) parallel_sandbox(1,"",&sbfiles)
-            
-    /* Checking if there is anything to clean */
-    if (files == J(0,1,"")) display(sprintf("{text:parallel clean:} {result: nothing to clean...}"))
-    else {
-        /* Checking sandbox files */
-        for(i=1;i<=length(sbfiles);i++)
-            files = select(files, files:!=sbfiles[i])
-    
-        /* Looping over file names */
-        for(i=1;i<=rows(files);i++)
-            unlink(files[i])
+    if (!force) parallel_sandbox(6,"",&sbfiles)
+
+    for(i=1;i<=length(sbfiles);i++)
+        parallelids = select(parallelids, parallelids:!=sbfiles[i])
+
+    /* Cleaning up */
+    if (length(parallelids))
+    {
+        for(i=1;i<=length(parallelids);i++)
+        {
+            parallel_recursively_rm(parallelids[i],pwd())
+            parallel_recursively_rm(parallelids[i],c("tmpdir"))
+        }
     }
+    else display(sprintf("{text:parallel clean:} {result: nothing to clean...}"))
+    
+    return
 }
 end
 
@@ -292,11 +183,24 @@ end
 *! {c TLC}{dup 78:{c -}}{c TRC}
 *! {c |} {bf:Beginning of file -parallel_divide_index.mata-}{col 83}{c |}
 *! {c BLC}{dup 78:{c -}}{c BRC}
-mata:
+*! vers 0.14.3 18mar2014
+*! author: George G. Vega Yon
 
-/* Compare observations i and j */
-*! {smcl}
-*! {marker parallel_compare_matrix}{bf:function -{it:parallel_compare_matrix}- in file -{it:parallel_divide_index.mata}-}{asis}
+
+mata:
+{smcl}
+*! {marker parallel_compare_matrix}{bf:function -{it:parallel_compare_matrix}- in file -{it:parallel_divide_index.mata}-}
+*! {back:{it:(previous page)}}
+*!{dup 78:{c -}}
+*!{col 4}{it:Compares vectors and returns 1 if are equal.}
+*!{col 4}{bf:parameters:}
+*!{col 6}{bf:numvars}{col 20}Numeric matrix.
+*!{col 6}{bf:trvars}{col 20}String matrix.
+*!{col 6}{bf:i}{col 20}i-th row to compare.
+*!{col 6}{bf:j}{col 20}j-th row to compare.
+*!{col 4}{bf:returns:}
+*!{col 6}{it:TRUE if all vector elements are equal, FALSE otherwise.}
+*!{dup 78:{c -}}{asis}
 real scalar parallel_compare_matrix(
     | real matrix numvars,
     string matrix strvars,
@@ -317,9 +221,18 @@ real scalar parallel_compare_matrix(
     return((numtest & strtest))
 }
 
-/* Generate index for dividing a dataset */
-*! {smcl}
-*! {marker parallel_divide_index}{bf:function -{it:parallel_divide_index}- in file -{it:parallel_divide_index.mata}-}{asis}
+{smcl}
+*! {marker parallel_divide_index}{bf:function -{it:parallel_divide_index}- in file -{it:parallel_divide_index.mata}-}
+*! {back:{it:(previous page)}}
+*!{dup 78:{c -}}
+*!{col 4}{it:Generate index for grouping observations}
+*!{col 4}{bf:parameters:}
+*!{col 6}{bf:numvars}{col 20}Numeric matrix.
+*!{col 6}{bf:trvars}{col 20}String matrix.
+*!{col 6}{bf:nclusters}{col 20}Number of clusters.
+*!{col 4}{bf:returns:}
+*!{col 6}{it:TRUE if all vector elements are equal, FALSE otherwise.}
+*!{dup 78:{c -}}{asis}
 real colvector parallel_divide_index(
     | real   matrix numvars,
     string matrix strvars,
@@ -431,19 +344,680 @@ real colvector parallel_divide_index(
 }
 
 end
+
 *! {smcl}
 *! {c TLC}{dup 78:{c -}}{c TRC}
 *! {c |} {bf:End of file -parallel_divide_index.mata-}{col 83}{c |}
 *! {c BLC}{dup 78:{c -}}{c BRC}
 *! {smcl}
 *! {c TLC}{dup 78:{c -}}{c TRC}
+*! {c |} {bf:Beginning of file -parallel_eststore.mata-}{col 83}{c |}
+*! {c BLC}{dup 78:{c -}}{c BRC}
+*! parallel_estout vers 0.14 10may2014
+*! auth George G Vega
+mata
+// mata clear
+/*
+ * @brief Process e() and store it as a plain-text file
+ * @param stmatname Name of e()
+ * @param fn File name where to save the file
+ * @param fappend whether to append or replace the file
+ */
+{smcl}
+*! {marker parallel_eststore}{bf:function -{it:parallel_eststore}- in file -{it:parallel_eststore.mata}-}
+*! {back:{it:(previous page)}}
+*!{dup 78:{c -}}{asis}
+void function parallel_eststore(
+    | string scalar fn,
+    string scalar stlist,
+    real scalar fappend
+)
+{
+    // Variables definition
+    real scalar fh, fh0
+    real scalar i, j, ncol, nrow, nhead, nnewcols
+    real matrix stmat, stmattmp
+    string rowvector fheader, tabheader
+    string matrix stcolnames0, strownames0
+    string rowvector stcolnames, strownames
+    real rowvector namesorder
+    string scalar txt, tabs, fn0, randtype
+    
+    string scalar stmatname
+    
+    if (fappend   == J(1,1,.)) fappend = 1
+    if (stlist == J(1,1,"")) stlist = "b"
+    
+    stmatname = "e("+stlist+")"
+    
+    // Matrix parsing
+    stmat       = st_matrix(stmatname)
+    stcolnames0 = ("","N")\st_matrixcolstripe(stmatname)
+    strownames0 = ("","_"+stlist) // st_matrixrowstripe(stmatname)
+    
+    stmat = J(rows(stmat),1,st_numscalar("e(N)")), stmat
+
+    // Col and row names
+    stcolnames = J(1, rows(stcolnames0),"")
+    for(i=1;i<=rows(stcolnames0);i++)
+        for(j=1;j<=cols(stcolnames0);j++)
+            stcolnames[i] = stcolnames[i]+stcolnames0[i,j]
+
+    strownames = J(1, rows(strownames0),"")
+    for(i=1;i<=rows(strownames0);i++)
+        for(j=1;j<=cols(strownames0);j++)
+            strownames[i] = strownames[i]+strownames0[i,j]
+            
+    // Merging names
+    ncol = length(stcolnames)
+    nrow = length(strownames)
+
+    tabheader = J(1,nrow*ncol,"")
+    
+    for(i=1;i<=nrow;i++)
+        for(j=1;j<=ncol;j++)
+            tabheader[j + ncol*(i-1)] = strownames[i]+"_"+stcolnames[j]
+
+    // File parsing
+    if (fn == J(1,1,"")) fn = sprintf("__pll%s_eststore%04.0f.tab",st_local("pll_id"),strtoreal(st_local("pll_instance")))
+    if (!fappend) unlink(fn)
+    
+    
+    // If no such file, creat a new one
+    if (!fileexists(fn))
+    {
+        fh = _fopen(fn, "w")
+        if (fh<0) _error(1)
+        
+        // Writing the file header
+        nhead = length(tabheader)
+        txt = ""
+        for(i=1;i<=nhead;i++) 
+            txt = txt + tabheader[i] + 
+                (i == nhead ? "" : sprintf("\t"))
+        fput(fh, txt)
+        
+        // Writing the file lines
+        for(i=1;i<=nrow;i++)
+        {
+            txt = ""
+            for(j=1;j<=ncol;j++)
+                txt = txt + sprintf("%g",stmat[i,j]) + 
+                    (j==ncol? "" : sprintf("\t"))
+            fput(fh, txt)
+        }
+                
+        fclose(fh)
+        
+        return
+    }
+    else 
+    {
+    
+        fh = _fopen(fn,"r")
+        
+        // Getting the order of the variables (so that we can write)
+        fheader = tokens(fget(fh),sprintf("\t"))
+        fclose(fh)
+        fheader = select(fheader,fheader:!=sprintf("\t"))
+        nhead = length(fheader)
+        
+        namesorder = J(1,ncol*nrow,.)
+        nnewcols   = 0
+
+        // Looking for the same varname
+        for(j=1;j<=ncol*nrow;j++)
+        {
+            for(i=1;i<=nhead;i++)
+            {
+                if (fheader[i] == tabheader[j])
+                {
+                    namesorder[j] = i
+                    break
+                }
+            }
+            
+            if (namesorder[j] == .) 
+                namesorder[j] = nhead + (++nnewcols)
+        }
+        
+        // Ordering the variables accordingly to the file
+        stmattmp = J(nrow,max((max(namesorder),nhead)),.)
+        for(j=1;j<=ncol;j++)
+            stmattmp[,namesorder[j]] = stmat[,j]
+
+        // In the case of new columns, the rest of the rows must be modified
+        if (nnewcols)
+        {
+            
+            fh    = fopen(fn, "r")
+            fh0   = fopen(
+                (fn0=parallel_randomid(10,randtype,1,1,1)), 
+                "w")
+            
+            txt   = fget(fh)
+            txt
+            for(i=1;i<=length(namesorder);i++)
+                if (namesorder[i]>nhead) 
+                    txt = txt + sprintf("\t")+tabheader[i]
+            txt
+            fput(fh0,txt)
+            
+            tabs = ""
+            for(i=1;i<=nnewcols;i++) tabs = tabs+sprintf("\t")
+            
+            // Adding the new lines
+            while((txt=fget(fh))!=J(0,0,"") )
+                fput(fh0, txt+tabs)
+
+            // Renaming the file
+            fclose(fh)
+            fclose(fh0)
+            stata("copy "+fn0+" "+fn+", replace")
+            unlink(fn0)
+        }
+        
+        // Writing the file lines
+        fh = fopen(fn, "a")
+        
+        ncol = cols(stmattmp)
+        
+        for(i=1;i<=nrow;i++)
+        {
+            txt = ""
+            for(j=1;j<=ncol;j++)
+                txt = txt + sprintf("%g",
+                    stmattmp[i,j]) + 
+                    sprintf((j==ncol? "" : "\t")
+                )
+                
+            fput(fh, txt)
+        }
+        
+        // Finishing
+        fclose(fh)        
+        return
+    }
+}
+
+/*
+ * @brief List returning objects (scalar/macro/matrix/function)
+ * @param typeofr Return type, could be e, r or s.
+ */
+{smcl}
+*! {marker parallel_xreturnlist}{bf:function -{it:parallel_xreturnlist}- in file -{it:parallel_eststore.mata}-}
+*! {back:{it:(previous page)}}
+*!{dup 78:{c -}}{asis}
+string colvector function parallel_xreturnlist(|string scalar typeofr)
+{
+
+    if (!args()) typeofr = "e"
+
+    if (!regexm(typeofr,"^(e|r|s)$")) _error(1)
+
+    string colvector out
+    out = J(0,1,"")
+    
+    if (typeofr == "e") /* ereturn type */
+    {
+        stata("local x : e(scalars)")
+        out = st_local("x")
+        
+        stata("local x : e(macros)")
+        out = out\st_local("x")
+        
+        stata("local x : e(matrices)")
+        out = out\st_local("x")
+        
+        stata("local x : e(functions)")
+        out = out\st_local("x")
+    }
+    else if (typeofr == "r") /*return type*/
+    {
+        stata("local x : r(scalars)")
+        out = st_local("x")
+        
+        stata("local x : r(macros)")
+        out = out\st_local("x")
+        
+        stata("local x : r(matrices)")
+        out = out\st_local("x")
+        
+        stata("local x : r(functions)")
+        out = out\st_local("x")
+    }
+    else if (typeofr == "s") /*sreturn type*/
+    {
+        stata("local x : s(macros)")
+        out = st_local("x")
+    }
+    
+    return(out)
+}
+
+// General manager of parallel_estout
+// Possible actions:
+//  0: Start
+//  1: Merge
+{smcl}
+*! {marker parallel_eststore_start}{bf:function -{it:parallel_eststore_start}- in file -{it:parallel_eststore.mata}-}
+*! {back:{it:(previous page)}}
+*!{dup 78:{c -}}{asis}
+void function parallel_eststore_start(|string scalar fn)
+{
+    // Checking if the file exists
+    if (args() == 0)
+        fn = sprintf("__pll%s_estout%04.0f.tab",st_local("pll_id"),strtoreal(st_local("pll_instance")))
+    unlink(fn)    
+}
+
+/*
+ * @brief Merges parallel_estout_save() files
+ * @param fn Name of the output file
+ * @param fns List of file names
+ * @param expr Expresion to expand in the form of "%fmts, numlist"
+ */
+{smcl}
+*! {marker parallel_eststore_append}{bf:function -{it:parallel_eststore_append}- in file -{it:parallel_eststore.mata}-}
+*! {back:{it:(previous page)}}
+*!{dup 78:{c -}}{asis}
+void parallel_eststore_append(
+    string scalar fn,
+    | string scalar fns,
+    string scalar expr)
+{
+
+    real scalar i, nclusters
+    string scalar parallelid
+    string rowvector files
+    
+    /* If there are no arguments, ther it should be parallel using it */    
+    if (args()==1) 
+    {
+        /* Retrieving information from parallel */
+        parallelid = st_global("r(pll_id)")
+        nclusters  = strtoreal(st_global("PLL_CLUSTERS"))
+        
+        files = J(1,nclusters,"")
+        for(i=1;i<=nclusters;i++)
+            files[i] = sprintf("__pll%s_eststore%04.0f.tab", parallelid, i)
+    }
+    else if (args() == 2) files = tokens(fns)
+    else files = tokens(parallel_expand_expr(expr))
+    
+    if (parallelid == J(1,1,"")) parallelid = parallel_randomid(10,"",1,1,1)
+    
+    /* Checking which files exists */
+    for(i=1;i<=length(files);i++)
+    {
+        if (!fileexists(files[i])) files[i] = ""
+        files = select(files, files :!= "")
+    }
+    
+    /* If no file, then exit */
+    if (!length(files)) return
+    
+    /* Preserving information and appending the dataset */
+    real scalar N
+    N = c("N")
+    if (N) stata("qui save __pll"+parallelid+"estout_preserve.dta, replace")
+    for(i=1;i<=length(files);i++)
+    {
+        stata(sprintf("qui insheet using %s, clear", files[i]))
+        unlink(files[i])
+        if (i!=1) stata(sprintf("qui append using %s", fn))
+        stata(sprintf("qui save %s, replace", fn))
+    }
+    
+    /* Saving and compressing */
+    stata("qui compress")
+    stata(sprintf("save %s, replace", fn))
+    
+    display(sprintf("The file -%s- has been created at:{break}{tab}%s",fn,pwd()))
+    
+    if (N)
+    {
+        stata("qui use __pll"+parallelid+"estout_preserve.dta, clear")
+        unlink("__pll"+parallelid+"estout_preserve.dta")
+    }
+    
+    return
+}
+
+end
+
+/*
+
+local pll_instance 1
+local pll_id 1asd156
+local reps 100
+
+timer clear
+forval i=1/20 {
+    sysuse auto, clear
+    timer on 1
+    qui bs, reps(`reps') : regress mpg weight c.weight#c.weight foreign
+    timer off 1
+
+    tempfile x
+    save `x', replace
+
+    timer on 2
+    mata parallel_eststore_start("__pllest`i'.tab")
+    forval j=1/`reps' {
+        qui use `x', clear
+        bsample
+        qui regress mpg weight c.weight#c.weight foreign
+        mata parallel_eststore("__pllest`i'.tab")
+    }
+
+    insheet using "__pllest`i'.tab", tab names clear
+    qui summ
+    timer off 2
+}
+timer list
+
+m parallel_eststore_append("__pllest.dta","","__pllest%g.tab,1/20")
+
+*! {smcl}
+*! {c TLC}{dup 78:{c -}}{c TRC}
+*! {c |} {bf:End of file -parallel_eststore.mata-}{col 83}{c |}
+*! {c BLC}{dup 78:{c -}}{c BRC}
+*! {smcl}
+*! {c TLC}{dup 78:{c -}}{c TRC}
+*! {c |} {bf:Beginning of file -parallel_expand_expr.mata-}{col 83}{c |}
+*! {c BLC}{dup 78:{c -}}{c BRC}
+*! vers 0.14.4 9apr2014
+*! auth George G. Vega
+
+ * @param 
+
+mata:
+{smcl}
+*! {marker parallel_expand_expr}{bf:function -{it:parallel_expand_expr}- in file -{it:parallel_expand_expr.mata}-}
+*! {back:{it:(previous page)}}
+*!{dup 78:{c -}}
+*!{col 4}{it:Expands a fmt string combining numlists}
+*!{col 4}{bf:author(s):}
+*!{col 6}{it:George G. Vega}
+*!{col 4}{bf:parameters:}
+*!{col 6}{bf:expr}{col 20}An expression containing a fmt and numlists
+*!{col 6}{bf:pchar}{col 20}(optional) Parsing char which separates -fmt- and numlists
+*!{col 4}{bf:returns:}
+*!{col 6}{it:}
+*!{dup 78:{c -}}{asis}
+string scalar function parallel_expand_expr(
+    string scalar expr,
+    |string scalar pchar,
+    string scalar sep
+    )
+{
+    /* Variables definition */
+    string colvector expexpr
+    string scalar bexpr, out
+    real scalar nexpr, i
+        
+    if (args()<2 | pchar==J(1,1,"")) pchar = ","
+    if (args()<3) sep = " "
+    
+    /* Parsing the expression */
+    expexpr = tokens(expr,pchar)
+    expexpr = select(expexpr, expexpr :!= ",")
+    if ((nexpr=length(expexpr))==1) _error(1)
+        
+    bexpr = expexpr[1]
+    expexpr = expexpr[2..nexpr]
+    nexpr = nexpr-1
+    
+    /* Getting the expresion */
+    pointer(string rowvector) colvector numlists
+    numlists = J(nexpr, 1, NULL)
+    
+    for(i=1;i<=nexpr;i++) 
+    {
+        stata(`"numlist ""'+expexpr[i]+`"""')
+        numlists[i] = &tokens(st_global("r(numlist)"))
+        
+    }
+    
+    /* Creating the expression */
+    real scalar i1, i2, i3, i4
+    string rowvector l1, l2, l3, l4
+
+    out = ""
+    if (nexpr == 1)
+    {
+        l1 = *numlists[1]
+        for(i1=1;i1<=length(l1);i1++)
+            out = out +sep+ sprintf(bexpr,strtoreal(l1[i1]))
+    }
+    else if (nexpr == 2)
+    {
+    
+        l1 = *numlists[1]
+        l2 = *numlists[2]
+        for(i1=1;i1<=length(l1);i1++)
+            for(i2=1;i2<=length(l2);i2++)
+                out = out +sep+ sprintf(bexpr,strtoreal(l1[i1]),strtoreal(l2[i2]))
+    }
+    else if (nexpr == 3)
+    {
+    
+        l1 = *numlists[1]
+        l2 = *numlists[2]
+        l3 = *numlists[3]
+        for(i1=1;i1<=length(l1);i1++)
+            for(i2=1;i2<=length(l2);i2++)
+                for(i3=1;i3<=length(l3);i3++)
+                    out = out +sep+ sprintf(bexpr,strtoreal(l1[i1]),strtoreal(l2[i2]),strtoreal(l3[i3]))
+    }
+    else if (nexpr == 4)
+    {
+    
+        l1 = *numlists[1]
+        l2 = *numlists[2]
+        l3 = *numlists[3]
+        l4 = *numlists[4]
+        for(i1=1;i1<=length(l1);i1++)
+            for(i2=1;i2<=length(l2);i2++)
+                for(i3=1;i3<=length(l3);i3++)
+                    for(i4=1;i4<=length(l4);i4++)
+                        out = out +sep+ sprintf(bexpr,strtoreal(l1[i1]),strtoreal(l2[i2]),strtoreal(l3[i3]),strtoreal(l4[i4]))
+    }
+
+    return(out)
+}
+end
+/*
+m parallel_expand_expr("%02.0f_%02.0f/mcci.dta, 2007/2013,1/12")
+m parallel_expand_expr("%02.0f_%02.0f/%02.0f, 2007/2013,1/12,0/1")
+m parallel_expand_expr("%02.0f_%02.0f/%02.0f, 2007/2013,1(4)12,0/1")
+m parallel_expand_expr("%02.0fa%02.0fb%02.0fc%02.0fd, 1/2,3/4,5/6,7/8")
+*/
+
+/* Crear una lista de la forma 2013_01 2013_02 ... 2015_12 */
+// m parallel_expand_expr("%04.0f_%02.0f, 2013/2015, 1/12")
+
+*! {smcl}
+*! {c TLC}{dup 78:{c -}}{c TRC}
+*! {c |} {bf:End of file -parallel_expand_expr.mata-}{col 83}{c |}
+*! {c BLC}{dup 78:{c -}}{c BRC}
+*! {smcl}
+*! {c TLC}{dup 78:{c -}}{c TRC}
+*! {c |} {bf:Beginning of file -parallel_export_globals.mata-}{col 83}{c |}
+*! {c BLC}{dup 78:{c -}}{c BRC}
+*! parallel_export_globals vers 0.14.3
+*! author: George G. Vega Yon
+
+mata:
+
+{smcl}
+*! {marker parallel_export_globals}{bf:function -{it:parallel_export_globals}- in file -{it:parallel_export_globals.mata}-}
+*! {back:{it:(previous page)}}
+*!{dup 78:{c -}}
+*!{col 4}{it:Looks for global macros and writes to the dofile.}
+*!{col 4}{bf:parameters:}
+*!{col 6}{bf:outname}{col 20}Name of the new do-file.
+*!{col 6}{bf:out_fh}{col 20}If a file is already open, the user can export the globals to it.
+*!{col 4}{bf:returns:}
+*!{col 6}{it:A do-file eady to be runned and define globals.}
+*!{dup 78:{c -}}{asis}
+void parallel_export_globals(|string scalar outname, real scalar ou_fh) {
+    
+    real   scalar isnewfile, glob_ind
+    string scalar macname, macvalu, FORBIDDEN, line
+    string colvector global_names
+
+    if (outname == J(1,1,"")) outname = parallel_randomid(10,"",1,1,1)
+    
+    if (ou_fh == J(1,1,.)) {
+        if (fileexists(outname)) unlink(outname)
+        ou_fh = fopen(outname, "w", 1)
+        isnewfile = 1
+    }
+    else isnewfile = 0
+
+    // Step 1
+    FORBIDDEN = "^(S\_FNDATE|S\_FN|F[0-9]|S\_level|S\_ADO|S\_FLAVOR|S\_OS|S\_MACH)"
+
+    global_names = st_dir("global", "macro", "*")
+    for(glob_ind=1; glob_ind<=rows(global_names); glob_ind++){
+        macname = global_names[glob_ind,1]
+        if (!regexm(macname, FORBIDDEN)){
+            macvalu = st_global(macname)
+            line = "global "+macname+" "+macvalu
+            fput(ou_fh, line)
+        }
+    }
+    
+    if (isnewfile) fclose(ou_fh)
+}
+end
+
+*! {smcl}
+*! {c TLC}{dup 78:{c -}}{c TRC}
+*! {c |} {bf:End of file -parallel_export_globals.mata-}{col 83}{c |}
+*! {c BLC}{dup 78:{c -}}{c BRC}
+*! {smcl}
+*! {c TLC}{dup 78:{c -}}{c TRC}
+*! {c |} {bf:Beginning of file -parallel_export_programs.mata-}{col 83}{c |}
+*! {c BLC}{dup 78:{c -}}{c BRC}
+*! vers 0.14.4 16apr2014
+*! author: George G. Vega
+
+mata:
+{smcl}
+*! {marker parallel_export_programs}{bf:function -{it:parallel_export_programs}- in file -{it:parallel_export_programs.mata}-}
+*! {back:{it:(previous page)}}
+*!{dup 78:{c -}}
+*!{col 4}{it:export programs loaded in the current sesion.}
+*!{col 4}{bf:parameters:}
+*!{col 6}{bf:ouname}{col 20}Name of the file that will contain the programs.
+*!{col 6}{bf:programlist}{col 20}List of programs to be exported.
+*!{col 6}{bf:inname}{col 20}Name of the tmp file that will be used as log.
+*!{col 4}{bf:return:}
+*!{col 6}{it:A do-file ready to be runned to load programs.}
+*!{dup 78:{c -}}{asis}
+void parallel_export_programs(
+    string scalar ouname ,
+    |string scalar programlist,
+    string scalar inname
+    ) 
+    {
+    
+    real scalar in_fh, ou_fh
+    string scalar line, oldsettrace
+    string scalar pathead, patnext
+    
+    if (programlist==J(1,1,"")) programlist = "_all"
+    if (inname==J(1,1,"")) inname = parallel_randomid(10,"",1,1,1)
+    
+    // Writing log
+    oldsettrace =c("trace")
+    if (oldsettrace == "on") stata("set trace off")
+    stata("log using "+inname+", text replace name(plllog"+st_local("parallelid")+")")
+
+    stata("noisily program list "+programlist)
+    stata("log close plllog"+st_local("parallelid"))
+    stata("set trace "+oldsettrace)
+    
+    // Opening files
+    in_fh =_fopen(inname, "r")
+    ou_fh =_fopen(ouname, "rw")
+    
+    // If any error occurs
+    if (ou_fh < 0) {
+        fclose(in_fh)
+        return
+    }
+    
+    fwrite(ou_fh,sprintf("\n"))
+    
+    // REGEX Patterns
+    string scalar space
+    space = "[\s ]*"+sprintf("\t")+"*"
+    pathead = "^"+space+"[^0-9][a-zA-Z_]+([a-zA-Z0-9_]*)(,"+space+"[a-zA-Z]*)?[:]"+space+"$"
+    patnext = "^[>] "
+    
+    while ((line = fget(in_fh))!=J(0,0,"")) {
+        
+        // Enters if it is a start of a program
+        if(regexm(line, pathead)) {
+            // Writes the header
+            fput(ou_fh, sprintf("program def %s", subinstr(line, ":", "")))
+            line = fget(in_fh)
+        
+            // While it is whithin the program
+            while (line!=J(0,0,"")) {
+                if (regexm(line, patnext)) { // If it is a trimmed version of the program
+                    fwrite(ou_fh, regexr(line, patnext,""))
+                }
+                else if (strlen(line) == 0 | !regexm(line, "^"+space+"[0-9]+\.")) { // If it is the last line of the program
+                    fput(ou_fh, sprintf("\nend"))
+                    line = fget(in_fh)
+                    break
+                }
+                else { // If it is ok
+                    line = regexr(line, "^[\s ]*[0-9]+\.", "")
+                    fwrite(ou_fh, strltrim(sprintf("\n%s",line)))
+                }
+                line = fget(in_fh)
+            }
+        }
+    }
+    
+    // Cleaning the files
+    fclose(in_fh)
+    unlink(inname)
+    fwrite(ou_fh,sprintf("\n"))
+    fclose(ou_fh)
+    return
+}
+end
+*! {smcl}
+*! {c TLC}{dup 78:{c -}}{c TRC}
+*! {c |} {bf:End of file -parallel_export_programs.mata-}{col 83}{c |}
+*! {c BLC}{dup 78:{c -}}{c BRC}
+*! {smcl}
+*! {c TLC}{dup 78:{c -}}{c TRC}
 *! {c |} {bf:Beginning of file -parallel_finito.mata-}{col 83}{c |}
 *! {c BLC}{dup 78:{c -}}{c BRC}
-*! version 0.13.10.3  3oct2013
-* Waits until every process finishes or stops the processes
+*! version 0.14.4  17apr2014
+*! author: George G. Vega Yon
+
 mata:
-*! {smcl}
-*! {marker parallel_finito}{bf:function -{it:parallel_finito}- in file -{it:parallel_finito.mata}-}{asis}
+{smcl}
+*! {marker parallel_finito}{bf:function -{it:parallel_finito}- in file -{it:parallel_finito.mata}-}
+*! {back:{it:(previous page)}}
+*!{dup 78:{c -}}
+*!{col 4}{it:Waits until every process finishes or stops the processes}
+*!{col 4}{bf:parameters:}
+*!{col 6}{bf:parallelid}{col 20}Parallel instance id.
+*!{col 6}{bf:nclusters}{col 20}Number of clusters.
+*!{col 6}{bf:timeout}{col 20}Time (in secs) before abort.
+*!{col 4}{bf:returns:}
+*!{col 6}{it:Number of clusters that stopped with error.}
+*!{dup 78:{c -}}{asis}
 real scalar parallel_finito(
     string scalar parallelid,
     | real scalar nclusters,
@@ -482,14 +1056,14 @@ real scalar parallel_finito(
     for(i=1;i<=nclusters;i++)
     {        
         /* Building filename */
-        fname = sprintf("__pll%s_do%g.log", parallelid, i)
+        fname = sprintf("__pll%s_do%04.0f.log", parallelid, i)
         time = 0
         while (!fileexists(fname) & ((++time)*100 < timeout) & !breakkey())
             stata("sleep 100")
             
-        if (!fileexists(fname)) 
+        if (!fileexists(fname))
         {
-            display(sprintf("{it:cluster %g} {error:has finished with a connection error -601- (timeout) ({stata search r(601):see more})...}", i))
+            display(sprintf("{it:cluster %04.0f} {text:has finished with a connection error -601- (timeout) ({stata search r(601):see more})...}", i))
             suberrors++
             continue
         }
@@ -501,6 +1075,8 @@ real scalar parallel_finito(
     /* If there are as many errors as clusters, then exit */
     if (suberrors == nclusters) return(suberrors)
     
+    string scalar logfilename, tmpdirname
+
     while(length(pendingcl)>0)
     {
         
@@ -510,7 +1086,7 @@ real scalar parallel_finito(
             /* If this cluster is ready, then continue */
             if (!any(pendingcl :== i)) continue
             
-            fname = sprintf("__pll%s_finito%g", parallelid, i)
+            fname = sprintf("__pll%s_finito%04.0f", parallelid, i)
             
             if (breakkey() & !pressed) 
             { /* If the user pressed -break-, each instance will try to finish the work through parallel finito */
@@ -527,24 +1103,35 @@ real scalar parallel_finito(
                 fclose(out_fh)
                 
                 pressed = 1
-                fname = sprintf("__pll%s_finito%g", parallelid, i)
+                fname = sprintf("__pll%s_finito%04.0f", parallelid, i)
                 
             }
         
             if (fileexists(fname)) // If the file exists
-            { 
+            {
                 /* Opening the file and looking for somethign different of 0
                 (which is clear) */
+
+                /* Copying log file */
+                logfilename = sprintf("%s__pll%s_do%04.0f.log", (c("os") == "Windows" ? "" : "/"), parallelid, i)
+                stata(sprintf(`"cap copy __pll%s_do%04.0f.log "\`c(tmpdir)'%s", replace"', parallelid, i, logfilename))
+                unlink(pwd()+logfilename)
+
                 in_fh = fopen(fname, "r", 1)
                 if ((errornum=strtoreal(fget(in_fh))))
                 {
                     msg = fget(in_fh)
-                    if (msg == J(0,0,"")) display(sprintf("{it:cluster %g} {error:has finished with an error -%g- ({stata search r(%g):see more})...}", i, errornum, errornum))
-                    else display(sprintf("{it:cluster %g} {error:has finished with an error -%g- %s ({stata search r(%g):see more})...}", i, errornum, msg, errornum))
+                    if (msg == J(0,0,"")) display(sprintf(`"{it:cluster %04.0f} {text:Exited with error -%g- ({stata parallel viewlog %g, e(%s):view log})...}"', i, errornum, i, parallelid))
+                    else display(sprintf(`"{it:cluster %04.0f} {text:Exited with error -%g- %s ({stata parallel viewlog %g, e(%s):view log})...}"', i, errornum, msg, i, parallelid))
                     suberrors++
                 }
-                else display(sprintf("{it:cluster %g} {text:has finished without any error...}", i))
+                else display(sprintf("{it:cluster %04.0f} {text:has exited without error...}", i))
                 fclose(in_fh)
+
+                /* Checking tmpdir */
+                tmpdirname = sprintf("%s"+ (c("os")=="Windows" ? "" : "/") + "__pll%s_tmpdir%04.0f", c("tmpdir"),parallelid,i)
+                parallel_recursively_rm(parallelid,tmpdirname,1)
+                rmdir(tmpdirname)
                 
                 /* Taking the finished cluster out of the list */
                 pendingcl = select(pendingcl, pendingcl :!= i)
@@ -562,10 +1149,15 @@ real scalar parallel_finito(
         (void) setbreakintr(bk)
     }
     
+    real scalar linesize
+    linesize = c("linesize") > 80 ? 80 : c("linesize")
+    display(sprintf("{hline %g}{break}{text:Enter -{stata parallel printlog 1, e(%s):parallel printlog #}- to checkout logfiles.}{break}{hline %g}", linesize, parallelid, linesize))
+    
     return(suberrors)
     
 }
 end
+
 *! {smcl}
 *! {c TLC}{dup 78:{c -}}{c TRC}
 *! {c |} {bf:End of file -parallel_finito.mata-}{col 83}{c |}
@@ -576,8 +1168,10 @@ end
 *! {c BLC}{dup 78:{c -}}{c BRC}
 cap mata: mata drop parallel_for()
 mata:
-*! {smcl}
-*! {marker parallel_for}{bf:function -{it:parallel_for}- in file -{it:parallel_for.mata}-}{asis}
+{smcl}
+*! {marker parallel_for}{bf:function -{it:parallel_for}- in file -{it:parallel_for.mata}-}
+*! {back:{it:(previous page)}}
+*!{dup 78:{c -}}{asis}
 void parallel_for(real matrix data, string scalar fun, | real scalar byrow) {
     
     real scalar i, obsleft, clsize, nobs
@@ -611,12 +1205,239 @@ mata: parallel_for(J(50,2,1),"sum[1..i]")
 *! {c BLC}{dup 78:{c -}}{c BRC}
 *! {smcl}
 *! {c TLC}{dup 78:{c -}}{c TRC}
+*! {c |} {bf:Beginning of file -parallel_montecarlo.mata-}{col 83}{c |}
+*! {c BLC}{dup 78:{c -}}{c BRC}
+mata
+
+// Resampling algorithm
+{smcl}
+*! {marker parallel_resample}{bf:function -{it:parallel_resample}- in file -{it:parallel_montecarlo.mata}-}
+*! {back:{it:(previous page)}}
+*!{dup 78:{c -}}{asis}
+real colvector function parallel_resample(
+        | real scalar size,
+        real colvector weights
+        )
+{
+        real colvector permut, index, newsample
+        real scalar N0, N1, n, i, k, j
+
+        N0 = c("N")
+
+        // Getting the sample size
+        if (size < 1) n = max( (1,round(size*N0)) )
+        else {
+        if (N0 < size)
+        {
+            printf("N is smaller than the requiered size\n")
+            n = N0
+        }
+        else n = size
+    }
+
+        // Expanding the observations index (or not!)
+    k = 0
+        if (weights != J(0,1,.))
+        {
+        N1 = sum(weights)
+                index = J(sum(weights),1,1)
+                for(i=1;i<=N0;i++)
+                {
+                        j=0
+                        while(j++ < weights[i])
+                                index[++k] = i
+                }
+        }
+        else
+    {
+        N1 = N0
+        index = 1::N0
+    }
+
+    index = index\index
+
+    // Getting the selected obs id
+        permut = index[order(runiform(N1*2,1),1)[1::n]]
+
+    // Creating the weights
+    newsample = J(N0,1,0)
+    for(i=1;i<=n;i++)
+        newsample[permut[i]] = newsample[permut[i]] + 1
+        
+
+    return(newsample)
+
+}
+
+end
+*! {smcl}
+*! {c TLC}{dup 78:{c -}}{c TRC}
+*! {c |} {bf:End of file -parallel_montecarlo.mata-}{col 83}{c |}
+*! {c BLC}{dup 78:{c -}}{c BRC}
+*! {smcl}
+*! {c TLC}{dup 78:{c -}}{c TRC}
+*! {c |} {bf:Beginning of file -parallel_normalizepath.mata-}{col 83}{c |}
+*! {c BLC}{dup 78:{c -}}{c BRC}
+*! vers 0.14.4 18apr2014
+*! author: George G. Vega Yon
+
+
+mata:
+{smcl}
+*! {marker parallel_normalizepath}{bf:function -{it:parallel_normalizepath}- in file -{it:parallel_normalizepath.mata}-}
+*! {back:{it:(previous page)}}
+*!{dup 78:{c -}}
+*!{col 4}{it:Path parsing.}
+*!{col 4}{bf:parameters:}
+*!{col 6}{bf:Path}{col 20}to be analized.
+*!{col 6}{bf:Whether}{col 20}to export the results as local or not.
+*!{col 4}{bf:return:}
+*!{col 6}{it:A vector with path\fullpath\fileext\filename. }
+*!{dup 78:{c -}}{asis}
+transmorphic function parallel_normalizepath(
+    string scalar path,
+    | real scalar exportaslocal
+    )
+    {
+    
+    string scalar filename, fileext, fullpath, filedir, curpath
+    string rowvector parts
+    real scalar i, isfile
+    
+    if (exportaslocal == J(1,1,.)) exportaslocal = 0
+        
+    // Replacing folder sep
+    fullpath = subinstr(path, "\", "/")
+    fullpath = subinstr(path, `"""', "")
+    
+    // Verifying if there is anything
+    if (fileexists(fullpath)) isfile = 1
+    else if (direxists(fullpath)) isfile = 0
+    else _error(601)
+    
+    curpath = regexr(pwd(), "/$", "")
+    
+    if (isfile) {
+        if(fileexists(pwd()+fullpath))
+            fullpath = subinstr(pwd(),"\","/")+fullpath
+    }
+    else {
+        if(direxists(pwd()+fullpath))
+            fullpath = subinstr(pwd(),"\","/")+fullpath
+    }
+    
+    // Cleaning ".." and spliting (parsing)
+    parts = tokens(fullpath,"/")
+    if (cols(parts) >= 3) {
+        for(i=3;i<=cols(parts);i++) {
+            if (parts[i] == "..") parts[(i-2)..i] = J(1,3,"")
+        }
+    }
+    
+    // Merging all
+    fullpath = ""
+    for(i=1;i<=cols(parts);i++) fullpath = fullpath+parts[i]
+    
+    // Replacing "//"
+    while (strlen(fullpath) != strlen(regexr(fullpath, "//", "/")))
+        fullpath = regexr(fullpath, "//", "/")
+    
+    // Last check
+    if (isfile) {
+        if(!fileexists(fullpath)) _error(1)
+    }
+    else {
+        if(!direxists(fullpath)) _error(1)
+    }
+    
+    // Extracting details
+    pathsplit(fullpath, filedir, filename)
+    fileext = pathsuffix(filename)
+    
+    /* Checking last-bar */
+    if (!regexm(filedir,"(\/|\\)$")) filedir = filedir+"/"
+        
+    if (exportaslocal) {
+        st_local("filedir",filedir)
+        st_local("filename",filename)
+        st_local("fullpath",fullpath)
+        st_local("fileext",fileext)
+    }
+    else  return((path\fullpath\fileext\filename))
+    
+}
+end
+*! {smcl}
+*! {c TLC}{dup 78:{c -}}{c TRC}
+*! {c |} {bf:End of file -parallel_normalizepath.mata-}{col 83}{c |}
+*! {c BLC}{dup 78:{c -}}{c BRC}
+*! {smcl}
+*! {c TLC}{dup 78:{c -}}{c TRC}
+*! {c |} {bf:Beginning of file -parallel_parsefor.mata-}{col 83}{c |}
+*! {c BLC}{dup 78:{c -}}{c BRC}
+set trace off
+mata
+mata clear
+
+{smcl}
+*! {marker parallel_parsefor}{bf:function -{it:parallel_parsefor}- in file -{it:parallel_parsefor.mata}-}
+*! {back:{it:(previous page)}}
+*!{dup 78:{c -}}{asis}
+string scalar function parallel_parsefor(string scalar expr) 
+{
+    string scalar fortype, itervar
+    expr = st_local(expr)
+    printf(expr)
+    
+    /* Parsing the type of loop */
+    if (regexm(expr,"^(forval|foreach)[ ]([a-zA-Z0-9_]+)"))
+    {
+        fortype = regexs(1)
+        itervar = regexs(2)
+    }
+    else return("")
+}
+end
+
+cap program drop parallel_for
+program def parallel_for
+    syntax anything(equalok)
+    mata: parallel_parsefor("anything")
+end
+
+
+// set trace on
+parallel_for i=1/1000 { \n ///
+        di x + \`i' \n ///
+    }
+    
+
+*! {smcl}
+*! {c TLC}{dup 78:{c -}}{c TRC}
+*! {c |} {bf:End of file -parallel_parsefor.mata-}{col 83}{c |}
+*! {c BLC}{dup 78:{c -}}{c BRC}
+*! {smcl}
+*! {c TLC}{dup 78:{c -}}{c TRC}
 *! {c |} {bf:Beginning of file -parallel_randomid.mata-}{col 83}{c |}
 *! {c BLC}{dup 78:{c -}}{c BRC}
-// Mata's Random id generation
+*! vers 1.14.5 06may2014
+*! author: George G. Vega Yon
+
 mata:
-*! {smcl}
-*! {marker parallel_randomid}{bf:function -{it:parallel_randomid}- in file -{it:parallel_randomid.mata}-}{asis}
+{smcl}
+*! {marker parallel_randomid}{bf:function -{it:parallel_randomid}- in file -{it:parallel_randomid.mata}-}
+*! {back:{it:(previous page)}}
+*!{dup 78:{c -}}
+*!{col 4}{it:Mata's Random id generation.}
+*!{col 4}{bf:parameters:}
+*!{col 6}{bf:n}{col 20}Number of random ids to generate.
+*!{col 6}{bf:randtype}{col 20}Type of random algorithm to use.
+*!{col 6}{bf:alpha}{col 20}Whether to use or not alphanum.
+*!{col 6}{bf:nele}{col 20}Length of each random id generated.
+*!{col 6}{bf:ilent}{col 20}Whether to run quietly or not.
+*!{col 4}{bf:returns:}
+*!{col 6}{it:String colvector of random ids.}
+*!{dup 78:{c -}}{asis}
 string colvector parallel_randomid(|real scalar n, string scalar randtype, real scalar alpha, real scalar nele, real scalar silent) {
     
     string scalar curseed
@@ -642,6 +1463,15 @@ string colvector parallel_randomid(|real scalar n, string scalar randtype, real 
     
     // Keeping the current seed value (if its going to change)
     if (randtype!=J(1,1,"")) curseed = c("seed")
+
+    /* Checking whether PLL has already used an ID */
+    if (!strlen(st_global("PLL_LASTRNG"))) st_global("PLL_LASTRNG","0")
+    
+    real scalar PLL_LASTRNG
+    PLL_LASTRNG = strtoreal(st_global("PLL_LASTRNG")) + 1
+    st_global("PLL_LASTRNG", strofreal(PLL_LASTRNG))
+
+    n = n - strlen(strofreal(PLL_LASTRNG))
     
     if (randtype=="random.org") {
         if (!silent) printf("Connecting to random.org API...")
@@ -655,7 +1485,7 @@ string colvector parallel_randomid(|real scalar n, string scalar randtype, real 
         if (rn_fh >= 0) { // If the connection works fine
             id = J(0,1,"")
             while ((line=fget(rn_fh)) != J(0,0,"") ) {
-                id = id\ line
+                id = id\ line+strofreal(PLL_LASTRNG)
             }
             fclose(rn_fh)
             if (!silent) printf("success!\n")
@@ -675,7 +1505,10 @@ string colvector parallel_randomid(|real scalar n, string scalar randtype, real 
     }
     else if (randtype=="datetime") {
         newseed = strtrim(sprintf("%15.0f",
-            sum(ascii(c("current_date")))+strtoreal(subinstr(c("current_time"),":",""))))
+            sum(ascii(c("current_date")))+ /* Date component */
+            sum(ascii(c("user")))+         /* Usr name component */
+            strtoreal(strreverse(subinstr(c("current_time"),":","")))) /* Time component */
+            )
         stata("set seed "+newseed)
     }
     
@@ -688,7 +1521,7 @@ string colvector parallel_randomid(|real scalar n, string scalar randtype, real 
         for(i=1;i<=n;i++) {
             tmpid = tmpid+id2[i]
         }
-        id = id\tmpid
+        id = id\tmpid+strofreal(PLL_LASTRNG)
     }
     
     if (randtype!=J(1,1,"")) stata("set seed "+curseed)
@@ -702,19 +1535,99 @@ string colvector parallel_randomid(|real scalar n, string scalar randtype, real 
     return(id)
 }
 end
+
 *! {smcl}
 *! {c TLC}{dup 78:{c -}}{c TRC}
 *! {c |} {bf:End of file -parallel_randomid.mata-}{col 83}{c |}
 *! {c BLC}{dup 78:{c -}}{c BRC}
 *! {smcl}
 *! {c TLC}{dup 78:{c -}}{c TRC}
+*! {c |} {bf:Beginning of file -parallel_recursively_rm.mata-}{col 83}{c |}
+*! {c BLC}{dup 78:{c -}}{c BRC}
+
+mata
+
+/*
+ *@brief Recursively removes parallel tmpfiles
+ *@param parallelid Id of the parallel process to clean
+ *@param path Path where to search for auxiliary files
+ */
+{smcl}
+*! {marker parallel_recursively_rm}{bf:function -{it:parallel_recursively_rm}- in file -{it:parallel_recursively_rm.mata}-}
+*! {back:{it:(previous page)}}
+*!{dup 78:{c -}}{asis}
+void function parallel_recursively_rm(string scalar parallelid ,| string scalar path, real scalar atomic)
+{
+    if (path==J(1,1,"")) path = pwd()
+    else if (!regexm(path,"[/\]$")) path = path+"/"
+
+    // display("{hline}{break}Entering folder "+path)
+    
+    if (atomic == J(1,1,.)) atomic = 0
+    
+    string scalar pattern
+    if (!atomic) pattern = "__pll"+parallelid+"_*"
+    else pattern = "*"
+
+    string colvector dirs
+    string colvector files
+
+    /* Listing files */
+    dirs  = dir(path,"dirs",pattern,1)
+    files = dir(path,"files",pattern,1)\dir(path,"files","l"+pattern,1)
+    
+    real scalar i
+    if (atomic)
+    {
+        for(i=1;i<=length(files);i++)
+            unlink(files[i])
+    }
+    else
+    {
+        /* We don't want to remove logfiles */
+        for(i=1;i<=length(files);i++)
+            if (!regexm(files[i],"do[0-9]+\.log$")) unlink(files[i])
+    }
+
+    /* Entering each folder */
+    for(i=1;i<=length(dirs);i++)
+        parallel_recursively_rm(parallelid, dirs[i], 1)
+
+    /* Removing empty folders */
+    for(i=1;i<=length(dirs);i++)
+        rmdir(dirs[i])
+
+
+    return
+}
+
+end
+*! {smcl}
+*! {c TLC}{dup 78:{c -}}{c TRC}
+*! {c |} {bf:End of file -parallel_recursively_rm.mata-}{col 83}{c |}
+*! {c BLC}{dup 78:{c -}}{c BRC}
+*! {smcl}
+*! {c TLC}{dup 78:{c -}}{c TRC}
 *! {c |} {bf:Beginning of file -parallel_run.mata-}{col 83}{c |}
 *! {c BLC}{dup 78:{c -}}{c BRC}
-////////////////////////////////////////////////////////////////////////////////
-// Runs Stata in batch mode
+*! version 0.14.4.17 17apr2014
+*! author: George G. Vega Yon
+
+
 mata:
-*! {smcl}
-*! {marker parallel_run}{bf:function -{it:parallel_run}- in file -{it:parallel_run.mata}-}{asis}
+{smcl}
+*! {marker parallel_run}{bf:function -{it:parallel_run}- in file -{it:parallel_run.mata}-}
+*! {back:{it:(previous page)}}
+*!{dup 78:{c -}}
+*!{col 4}{it:Runs parallel clusters in batch mode.}
+*!{col 4}{bf:parameters:}
+*!{col 6}{bf:parallelid}{col 20}Parallel id.
+*!{col 6}{bf:nclusters}{col 20}Number of clusters.
+*!{col 6}{bf:paralleldir}{col 20}Dir where the process should be running.
+*!{col 6}{bf:timeout}{col 20}Number of seconds to wait until stop the process for no conextion.
+*!{col 4}{bf:returns:}
+*!{col 6}{it:Number of clusters that stopped with an error.}
+*!{dup 78:{c -}}{asis}
 real scalar parallel_run(
     string scalar parallelid, 
     |real scalar nclusters, 
@@ -729,45 +1642,64 @@ real scalar parallel_run(
     if (paralleldir == J(1,1,"")) paralleldir = st_global("PLL_DIR")
     
     // Message
-    display("{text:Parallel Computing with Stata} {result:(by GVY)}")
-    display("{text:Clusters:} {result:"+strofreal(nclusters)+"}")
-    display("{text:ID:} {result:"+parallelid+"}")
+    display(sprintf("{hline %g}",c("linesize") > 80?80:c("linesize")))
+    display("{result:Parallel Computing with Stata} (by GVY)")
+    display("{text:Clusters   :} {result:"+strofreal(nclusters)+"}")
+    display("{text:pll_id     :} {result:"+parallelid+"}")
+    display("{text:Running at :} {result:"+c("pwd")+"}")
+    display("{text:Randtype   :} {result:"+st_local("randtype")+"}")
     
-    if (strlen(st_local("randtype"))) display("{text:{it:Note: randtype = "+st_local("randtype")+"}}")
-
     if (c("os") != "Windows") { // MACOS/UNIX
         unlink("__pll"+parallelid+"_shell.sh")
         fh = fopen("__pll"+parallelid+"_shell.sh","w", 1)
-        fput(fh, "echo Stata instances PID:")
-        
+
         // Writing file
         if (c("os") != "Unix") {
             for(i=1;i<=nclusters;i++) {
-                fput(fh, paralleldir+" -e do __pll"+parallelid+"_do"+strofreal(i)+".do &")
+                mkdir(c("tmpdir")+"/__pll"+parallelid+strofreal(i, "%04.0f"),1) // fput(fh, "mkdir "+c("tmpdir")+"/"+parallelid+strofreal(i,"%04.0f"))
+                fput(fh, "export TMPDIR="+c("tmpdir")+"/__pll"+parallelid+"_tmpdir"+strofreal(i,"%04.0f"))
+                fput(fh, paralleldir+`" -e -q do ""'+pwd()+"__pll"+parallelid+"_do"+strofreal(i,"%04.0f")+`".do" &"')
             }
         }
         else {
             for(i=1;i<=nclusters;i++) {
-                fput(fh, paralleldir+" -b do __pll"+parallelid+"_do"+strofreal(i)+".do &")
+                mkdir(c("tmpdir")+"/__pll"+parallelid+"_tmpdir"+strofreal(i, "%04.0f"),1) // fput(fh, "mkdir "+c("tmpdir")+"/__pll"+parallelid+strofreal(i,"%04.0f"))
+                fput(fh, "export TMPDIR="+c("tmpdir")+"/__pll"+parallelid+"_tmpdir"+strofreal(i,"%04.0f"))
+                fput(fh, paralleldir+`" -b -q do ""'+pwd()+"__pll"+parallelid+"_do"+strofreal(i,"%04.0f")+`".do" &"')
             }
         }
-        
+
         fclose(fh)
         
         // stata("shell sh __pll"+parallelid+"shell.sh&")
         stata("winexec sh __pll"+parallelid+"_shell.sh")
     }
     else { // WINDOWS
+        
+        unlink("__pll"+parallelid+"_shell.bat")
+        fh = fopen("__pll"+parallelid+"_shell.bat","w", 1)
+        
+        // Writing file
         for(i=1;i<=nclusters;i++) {
-            // Lunching procces
-            stata("winexec "+paralleldir+" /e /q do __pll"+parallelid+"_do"+strofreal(i)+".do ")
+            mkdir(c("tmpdir")+"__pll"+parallelid+"_tmpdir"+strofreal(i, "%04.0f"),1)
+            fwrite(fh, "start /MIN /HIGH set TEMP="+c("tmpdir")+"__pll"+parallelid+"_tmpdir"+strofreal(i,"%04.0f")+" ^& ")
+            fput(fh, paralleldir+`" /e /q do ""'+pwd()+"__pll"+parallelid+"_do"+strofreal(i,"%04.0f")+`".do"^&exit"')
         }
+        
+        fput(fh, "exit")
+        
+        fclose(fh)
+        
+        stata("winexec __pll"+parallelid+"_shell.bat")
     }
     
     /* Waits until each process ends */
     return(parallel_finito(parallelid,nclusters,timeout))
 }
 end
+
+// set TEMP=C:\Users\SPENSI~1\AppData\Local\Temp/ubslh38mmc1 & "C:\Program Files (x86)\Stata12/Stata-64.exe" /e /q do __pllubslh38mmc_do1.do
+
 *! {smcl}
 *! {c TLC}{dup 78:{c -}}{c TRC}
 *! {c |} {bf:End of file -parallel_run.mata-}{col 83}{c |}
@@ -776,16 +1708,30 @@ end
 *! {c TLC}{dup 78:{c -}}{c TRC}
 *! {c |} {bf:Beginning of file -parallel_sandbox.mata-}{col 83}{c |}
 *! {c BLC}{dup 78:{c -}}{c BRC}
-*! vers 0.13.10.7 7oct2013
+*! vers 0.14.4 17apr2014
+ *               another parallel process).
 mata:
-*! {smcl}
-*! {marker parallel_sandbox}{bf:function -{it:parallel_sandbox}- in file -{it:parallel_sandbox.mata}-}{asis}
+{smcl}
+*! {marker parallel_sandbox}{bf:function -{it:parallel_sandbox}- in file -{it:parallel_sandbox.mata}-}
+*! {back:{it:(previous page)}}
+*!{dup 78:{c -}}
+*!{col 4}{it:Set of tools to prevent parallel instances to overlap.}
+*!{col 4}{bf:parameters:}
+*!{col 6}{bf:action}{col 20}Action to be taken.
+*!{col 6}{bf:pll_id}{col 20}Parallel process id.
+*!{col 6}{bf:result}{col 20}Pointer to list of files that can be removed (without stopping
+*!{col 4}{bf:returns:}
+*!{col 6}{it:Depends on the action.}
+*!{dup 78:{c -}}{asis}
 void parallel_sandbox(
     real scalar action,   /* 
         0: Check and create, if error aborts with error ;
         1: Returns a list of files that can be erased 
         2: Delets the respective sandbox file 
         3: Updates the status of a sandbox file
+        4:
+        5: Retrieves a parallelid as a scalar
+        6: Retrieves a list of parallelids that have a sandboxfile
         */
     |string scalar pll_id,
     pointer(scalar) scalar result
@@ -793,38 +1739,47 @@ void parallel_sandbox(
 {
     /* Definign variables */
     real scalar fh,i;
+    string scalar tmpdir
     string colvector sbids, sbfnames;
     
+    tmpdir = c("tmpdir")+(c("os") != "Windows" ? "/" : "")
+
     /* Checks if a parallel instance is currently running with the same pll id name */
     if (action==0)
     {
         /* Checking if the files exist */
-        if (fileexists("__pll"+pll_id+"_sandbox"))
+        if (fileexists(tmpdir+"__pll"+pll_id+"_sandbox"))
             _error(912,sprintf("-%s- aldready in use. Please change the seed.", pll_id))
         
         /* Creating the new file */
-        fh = fopen("__pll"+pll_id+"_sandbox", "w");
+        fh = fopen(tmpdir+"__pll"+pll_id+"_sandbox", "w");
         fput(fh,"pll_id:"+pll_id);
         fput(fh,"date:"+c("current_date")+" "+c("current_time"))
+        fput(fh,"usr:"+c("username"))
         fclose(fh);
         
         return
     }
     
     /* Returns a list of files which are not intended to be erased */
+    string scalar sbidsi
     if (action==1)
     {
         /* Listing the files that shuldn't be removed */
-        sbids = dir(".","files","__pll*sandbox");
+        sbids = dir(tmpdir,"files","__pll*sandbox",1);
         
         sbfnames = J(0,1,"");
         
         if (length(sbids))
         {
-            sbids = regexr(regexr(sbids, "l?__pll", ""), "_.*", "");
-        
             for(i=1;i<=length(sbids);i++)
-                sbfnames = sbfnames\dir(".","files","__pll"+sbids[i]+"*");
+            {
+                if (regexm(sbids[i],"[_][_]pll(.+)[_]sandbox$"))
+                {
+                    sbidsi = regexs(1); // regexr(sbids[i], "__pll", ""), "_.*", "");
+                    sbfnames = sbfnames\dir(pwd(),"files","__pll"+sbidsi+"*",1)\tmpdir+sbids[i];
+                }
+            }
         }
 
         /* Assigning the value */
@@ -836,7 +1791,7 @@ void parallel_sandbox(
     /* Removes the corresponding file to be removed */
     if (action==2)
     {
-        unlink("__pll"+pll_id+"_sandbox")
+        unlink(tmpdir+"__pll"+pll_id+"_sandbox")
         return
     }
 
@@ -850,6 +1805,59 @@ void parallel_sandbox(
         
         return
     } */
+
+    if (action==4)
+    {
+        /* Listing the folders that shouldn't be removed */
+        sbids = dir(tmpdir,"files","__pll*sandbox");
+        
+        sbfnames = J(0,1,"");
+
+        if (length(sbids))
+        {
+            for(i=1;i<=length(sbids);i++)
+            {
+                if (regexm(sbids[i],"[_][_]pll(.+)[_]sandbox$"))
+                {
+                    sbidsi = regexs(1); // regexr(sbids[i], "__pll", ""), "_.*", "");
+                    sbfnames = sbfnames\dir(pwd(),"dirs","__pll"+sbidsi+"*",1)
+                }
+            }
+        }
+
+        /* Assigning the value */
+        (*result) = sbfnames
+
+        return
+
+    }
+    
+    if (action==5)
+    {
+        real scalar idtaken
+        idtaken=1
+        while(idtaken)
+        {
+            pll_id = parallel_randomid(10, "datetime", 1, 1, 1)
+            idtaken    = fileexists(tmpdir+"__pll"+pll_id+"sandbox")
+        }
+        
+        /* Securing the pllid */
+        parallel_sandbox(0, pll_id)
+        st_local("parallelid", pll_id)
+        
+        return
+    }
+    
+    if (action == 6)
+    {
+        sbids = dir(tmpdir,"files","__pll*sandbox");
+        for(i=1;i<=length(sbids);i++)
+            sbids[i] = regexr(regexr(sbids[i],"^__pll",""),"sandbox$","")
+            
+        /* Assigning the value */
+        (*result) = sbfnames
+    }
     
 }
 end
@@ -876,6 +1884,7 @@ mata parallel_clean2("",1)
 ls
 
 */
+
 *! {smcl}
 *! {c TLC}{dup 78:{c -}}{c TRC}
 *! {c |} {bf:End of file -parallel_sandbox.mata-}{col 83}{c |}
@@ -884,9 +1893,21 @@ ls
 *! {c TLC}{dup 78:{c -}}{c TRC}
 *! {c |} {bf:Beginning of file -parallel_setclusters.mata-}{col 83}{c |}
 *! {c BLC}{dup 78:{c -}}{c BRC}
+*! vers 0.14.3 18mar2014
+*! author: George G. Vega Yon
+
 mata:
-*! {smcl}
-*! {marker parallel_setclusters}{bf:function -{it:parallel_setclusters}- in file -{it:parallel_setclusters.mata}-}{asis}
+{smcl}
+*! {marker parallel_setclusters}{bf:function -{it:parallel_setclusters}- in file -{it:parallel_setclusters.mata}-}
+*! {back:{it:(previous page)}}
+*!{dup 78:{c -}}
+*!{col 4}{it:Initial cluster setup for parallel.}
+*!{col 4}{bf:parameters:}
+*!{col 6}{bf:ncluster}{col 20}Number of clusters.
+*!{col 6}{bf:force}{col 20}Whether to force setting more than 8 clusters.
+*!{col 4}{bf:returns:}
+*!{col 6}{it:A global PLL_CLUSTERS.}
+*!{dup 78:{c -}}{asis}
 void parallel_setclusters(real scalar nclusters, |real scalar force) {
         
     // Setting number of clusters
@@ -906,9 +1927,22 @@ end
 *! {c TLC}{dup 78:{c -}}{c TRC}
 *! {c |} {bf:Beginning of file -parallel_setstatadir.mata-}{col 83}{c |}
 *! {c BLC}{dup 78:{c -}}{c BRC}
+*! vers 0.14.3 18mar2014
+*! author: George G. Vega Yon
+
+
 mata:
-*! {smcl}
-*! {marker parallel_setstatadir}{bf:function -{it:parallel_setstatadir}- in file -{it:parallel_setstatadir.mata}-}{asis}
+{smcl}
+*! {marker parallel_setstatadir}{bf:function -{it:parallel_setstatadir}- in file -{it:parallel_setstatadir.mata}-}
+*! {back:{it:(previous page)}}
+*!{dup 78:{c -}}
+*!{col 4}{it:Sets the path where stata exe is installed.}
+*!{col 4}{bf:parameters:}
+*!{col 6}{bf:tatadir}{col 20}If the user wants to set it manually
+*!{col 6}{bf:force}{col 20}Avoids path checking.
+*!{col 4}{bf:returns:}
+*!{col 6}{it:A global PLL_DIR.}
+*!{dup 78:{c -}}{asis}
 real scalar parallel_setstatadir(string scalar statadir, | real scalar force) {
 
     string scalar bit, flv
@@ -964,6 +1998,7 @@ real scalar parallel_setstatadir(string scalar statadir, | real scalar force) {
     return(0)
 }
 end
+
 *! {smcl}
 *! {c TLC}{dup 78:{c -}}{c TRC}
 *! {c |} {bf:End of file -parallel_setstatadir.mata-}{col 83}{c |}
@@ -973,10 +2008,21 @@ end
 *! {c |} {bf:Beginning of file -parallel_write_diagnosis.mata-}{col 83}{c |}
 *! {c BLC}{dup 78:{c -}}{c BRC}
 *! version 0.13.09.30  30sep2013
-* Writes a diagnosis to be read by -parallel_finito()-
+*! author: George G. Vega Yon
+
 mata:
-*! {smcl}
-*! {marker parallel_write_diagnosis}{bf:function -{it:parallel_write_diagnosis}- in file -{it:parallel_write_diagnosis.mata}-}{asis}
+{smcl}
+*! {marker parallel_write_diagnosis}{bf:function -{it:parallel_write_diagnosis}- in file -{it:parallel_write_diagnosis.mata}-}
+*! {back:{it:(previous page)}}
+*!{dup 78:{c -}}
+*!{col 4}{it:Writes a diagnosis to be read by -parallel_finito()-}
+*!{col 4}{bf:parameters:}
+*!{col 6}{bf:diagnosis}{col 20}Text to be written.
+*!{col 6}{bf:fname}{col 20}File where to write the diagnosis.
+*!{col 6}{bf:msg}{col 20}Message to include at the end of the file.
+*!{col 4}{bf:returns:}
+*!{col 6}{it:A file with one or two lines.}
+*!{dup 78:{c -}}{asis}
 void parallel_write_diagnosis(
     string scalar diagnosis,
     string scalar fname,
@@ -1002,9 +2048,29 @@ end
 *! {c BLC}{dup 78:{c -}}{c BRC}
 *! version 0.13.10.7  7oct2013
 * Generates the corresponding dofiles
+
 mata:
-*! {smcl}
-*! {marker parallel_write_do}{bf:function -{it:parallel_write_do}- in file -{it:parallel_write_do.mata}-}{asis}
+{smcl}
+*! {marker parallel_write_do}{bf:function -{it:parallel_write_do}- in file -{it:parallel_write_do.mata}-}
+*! {back:{it:(previous page)}}
+*!{dup 78:{c -}}
+*!{col 4}{it:Writes a fully functional do-file to be runned by -parallel_run()-.}
+*!{col 4}{bf:parameters:}
+*!{col 6}{bf:inputname}{col 20}Name of a do-file or string with a commando to be runned.
+*!{col 6}{bf:parallelid}{col 20}Parallel instance ID.
+*!{col 6}{bf:ncluster}{col 20}Number of clusters (files).
+*!{col 6}{bf:prefix}{col 20}Whether this is a command (prefix != 0) or a do-file.
+*!{col 6}{bf:matsave}{col 20}Whether to include or not MATA objects.
+*!{col 6}{bf:getmacros}{col 20}Whete to include or not Globals.
+*!{col 6}{bf:eed}{col 20}Seed to be used (list)
+*!{col 6}{bf:randtype}{col 20}If no seeds provided, type of algorithm used to generate the seeds
+*!{col 6}{bf:nodata}{col 20}Wheter to load (1) data or not.
+*!{col 6}{bf:folder}{col 20}Folder where the do-file should be running.
+*!{col 6}{bf:programs}{col 20}A list of programs to be used within each cluster.
+*!{col 6}{bf:processors}{col 20}Number of statamp processors to use in each cluster.
+*!{col 4}{bf:returns:}
+*!{col 6}{it:As many do-files as clusers used.}
+*!{dup 78:{c -}}{asis}
 real scalar parallel_write_do(
     string scalar inputname,
     string scalar parallelid,
@@ -1016,16 +2082,16 @@ real scalar parallel_write_do(
     string scalar randtype,
     real   scalar nodata,
     string scalar folder,
-    real scalar progsave,
+    string scalar programs,
     real scalar processors
     )
 {
     real vector input_fh, output_fh
-    string scalar line
+    string scalar line, fname
     string scalar memset, maxvarset, matsizeset
     real scalar i
     string colvector seeds
-    
+
     // Checking optargs
     if (matasave == J(1,1,.)) matasave = 0
     if (prefix == J(1,1,.)) prefix = 1
@@ -1060,30 +2126,49 @@ real scalar parallel_write_do(
     }
     if (nodata == J(1,1,.)) nodata = 0
     if (folder == J(1,1,"")) folder = c("pwd")
-    if (progsave == J(1,1,.)) progsave = 0
+
+    real scalar progsave
+    if (strlen(programs)) progsave = 1
+    else progsave = 0
     
     /* Checks for the MP version */
     if (!c("MP") & processors != 0 & processors != J(1,1,.)) display("{it:{result:Warning:} processors option ignored...}")
     else if (processors == J(1,1,.) | processors == 0) processors = 1
-    
-    if (progsave) program_export("__pll"+parallelid+"_prog.do")
-    if (getmacros) globals_export("__pll"+parallelid+"_glob.do")
+
+    if (progsave) parallel_export_programs(folder+"__pll"+parallelid+"_prog.do", programs, folder+"__pll"+parallelid+"_prog.log")
+    if (getmacros) parallel_export_globals(folder+"__pll"+parallelid+"_glob.do")
     
     for(i=1;i<=nclusters;i++) 
     {
         // Sets dofile
-        if (fileexists("__pll"+parallelid+"_do"+strofreal(i)+".do")) unlink("__pll"+parallelid+"do"+strofreal(i)+".do")
-        output_fh = fopen("__pll"+parallelid+"_do"+strofreal(i)+".do", "w", 1)
+                fname = folder+"__pll"+parallelid+"_do"+strofreal(i,"%04.0f")+".do"
+        if (fileexists(fname)) unlink(fname)
+        output_fh = fopen(fname, "w", 1)
         
         // Step 1
         fput(output_fh, "capture {")
         fput(output_fh, "clear")
         if (c("MP")) fput(output_fh, "set processors "+strofreal(processors))
         fput(output_fh, `"cd ""'+folder+`"""')
+        
+        //Copy over the adopath & matalibs order
+        fput(output_fh, "global S_ADO = `"+`"""'+st_global("S_ADO")+`"""'+"'")
+        fput(output_fh, "mata: mata mlib index")
+        fput(output_fh, `"mata: mata set matalibs ""'+st_global("c(matalibs)")+`"""')
             
         fput(output_fh, "set seed "+seeds[i])
 
         /* Parallel macros to be used by the current user */
+        fput(output_fh, `"noi di "{hline 80}""')
+        fput(output_fh, `"noi di "Parallel computing with stata (by GVY)""')
+        fput(output_fh, `"noi di "{hline 80}""')
+        fput(output_fh, sprintf(`"noi di \`"cmd/dofile   : "%s""'"', inputname))
+        fput(output_fh, sprintf(`"noi di "pll_id       : %s""',parallelid))
+        fput(output_fh, sprintf(`"noi di "pll_instance : %g/%g""',i,nclusters))
+        fput(output_fh,         `"noi di "tmpdir       : \`c(tmpdir)'""')
+        fput(output_fh,         `"noi di "date-time    : \`c(current_time)' \`c(current_date)'""')
+        fput(output_fh,         `"noi di "seed         : \`c(seed)'""')
+        fput(output_fh, `"noi di "{hline 80}""')
         fput(output_fh, "local pll_instance "+strofreal(i))
         fput(output_fh, "local pll_id "+parallelid)
         fput(output_fh, "global pll_instance "+strofreal(i))
@@ -1110,7 +2195,7 @@ real scalar parallel_write_do(
         fput(output_fh, "local result = _rc")
         fput(output_fh, "if (c(rc)) {")
         fput(output_fh, `"cd ""'+folder+`"""')
-        fput(output_fh, `"mata: parallel_write_diagnosis(strofreal(c("rc")),""'+"__pll"+parallelid+"_finito"+strofreal(i)+`"","while setting memory")"')
+        fput(output_fh, `"mata: parallel_write_diagnosis(strofreal(c("rc")),""'+folder+"__pll"+parallelid+"_finito"+strofreal(i,"%04.0f")+`"","while setting memory")"')
         fput(output_fh, "clear")
         fput(output_fh, "exit")
         fput(output_fh, "}")
@@ -1120,13 +2205,13 @@ real scalar parallel_write_do(
         {
             fput(output_fh, sprintf("\n/* Loading Programs */"))
             fput(output_fh, "capture {")
-            fput(output_fh, "run __pll"+parallelid+"_prog.do")
+            fput(output_fh, "run "+folder+"__pll"+parallelid+"_prog.do")
             /* Checking programs loading is just fine */
             fput(output_fh, "}")
             fput(output_fh, "local result = _rc")
             fput(output_fh, "if (c(rc)) {")
             fput(output_fh, `"cd ""'+folder+`"""')
-            fput(output_fh, `"mata: parallel_write_diagnosis(strofreal(c("rc")),""'+"__pll"+parallelid+"_finito"+strofreal(i)+`"","while loading programs")"')
+            fput(output_fh, `"mata: parallel_write_diagnosis(strofreal(c("rc")),""'+folder+"__pll"+parallelid+"_finito"+strofreal(i,"%04.0f")+`"","while loading programs")"')
             fput(output_fh, "clear")
             fput(output_fh, "exit")
             fput(output_fh, "}")
@@ -1141,13 +2226,13 @@ real scalar parallel_write_do(
         {
             fput(output_fh, sprintf("\n/* Loading Mata Objects */"))
             fput(output_fh, "capture {")
-            fput(output_fh, "mata: mata matuse __pll"+parallelid+"_mata.mmat")
+            fput(output_fh, "mata: mata matuse "+folder+"__pll"+parallelid+"_mata.mmat")
             /* Checking programs loading is just fine */
             fput(output_fh, "}")
             fput(output_fh, "local result = _rc")
             fput(output_fh, "if (c(rc)) {")
             fput(output_fh, `"cd ""'+folder+`"""')
-            fput(output_fh, `"mata: parallel_write_diagnosis(strofreal(c("rc")),""'+"__pll"+parallelid+"_finito"+strofreal(i)+`"","while loading mata objects")"')
+            fput(output_fh, `"mata: parallel_write_diagnosis(strofreal(c("rc")),""'+folder+"__pll"+parallelid+"_finito"+strofreal(i,"%04.0f")+`"","while loading mata objects")"')
             fput(output_fh, "clear")
             fput(output_fh, "exit")
             fput(output_fh, "}")
@@ -1162,12 +2247,12 @@ real scalar parallel_write_do(
         {
             fput(output_fh, sprintf("\n/* Loading Globals */"))
             fput(output_fh, "capture {")
-            fput(output_fh, "cap run __pll"+parallelid+"_glob.do")
+            fput(output_fh, "cap run "+folder+"__pll"+parallelid+"_glob.do")
             /* Checking programs loading is just fine */
             fput(output_fh, "}")
             fput(output_fh, "if (c(rc)) {")
             fput(output_fh, `"cd ""'+folder+`"""')
-            fput(output_fh, `"mata: parallel_write_diagnosis(strofreal(c("rc")),""'+"__pll"+parallelid+"_finito"+strofreal(i)+`"","while loading globals")"')
+            fput(output_fh, `"mata: parallel_write_diagnosis(strofreal(c("rc")),""'+folder+"__pll"+parallelid+"_finito"+strofreal(i,"%04.0f")+`"","while loading globals")"')
             fput(output_fh, "clear")
             fput(output_fh, "exit")
             fput(output_fh, "}")
@@ -1182,7 +2267,7 @@ real scalar parallel_write_do(
         fput(output_fh, "noisily {")
         
         // If it is not a command, i.e. a dofile
-        if (!nodata) fput(output_fh, "use __pll"+parallelid+"_dataset if _"+parallelid+"cut == "+strofreal(i))
+        if (!nodata) fput(output_fh, "use "+folder+"__pll"+parallelid+"_dataset if _"+parallelid+"cut == "+strofreal(i))
         
         /* Checking for break key */
         fput(output_fh, sprintf("\n/* Checking for break */"))
@@ -1198,105 +2283,18 @@ real scalar parallel_write_do(
         
         fput(output_fh, "}")
         fput(output_fh, "}")
-        if (!nodata) fput(output_fh, "save __pll"+parallelid+"_dta"+strofreal(i)+", replace")
+        if (!nodata) fput(output_fh, "save "+folder+"__pll"+parallelid+"_dta"+strofreal(i,"%04.0f")+", replace")
         
         // Step 3
         fput(output_fh, `"cd ""'+folder+`"""')
-        fput(output_fh, `"mata: parallel_write_diagnosis(strofreal(c("rc")),""'+"__pll"+parallelid+"_finito"+strofreal(i)+`"","while running the command/dofile")"')
+        fput(output_fh, `"mata: parallel_write_diagnosis(strofreal(c("rc")),""'+folder+"__pll"+parallelid+"_finito"+strofreal(i,"%04.0f")+`"","while executing the command")"')
         fclose(output_fh)
     }
     return(0)
 }
 end
+
 *! {smcl}
 *! {c TLC}{dup 78:{c -}}{c TRC}
 *! {c |} {bf:End of file -parallel_write_do.mata-}{col 83}{c |}
-*! {c BLC}{dup 78:{c -}}{c BRC}
-*! {smcl}
-*! {c TLC}{dup 78:{c -}}{c TRC}
-*! {c |} {bf:Beginning of file -program_export.mata-}{col 83}{c |}
-*! {c BLC}{dup 78:{c -}}{c BRC}
-*! vers 0.13.10.7 7oct2013
-mata:
-*! {smcl}
-*! {marker program_export}{bf:function -{it:program_export}- in file -{it:program_export.mata}-}{asis}
-void program_export(
-    string scalar ouname ,
-    |string scalar programlist,
-    string scalar inname
-    ) 
-    {
-    
-    real scalar in_fh, ou_fh
-    string scalar line, oldsettrace
-    string scalar pathead, patnext
-    
-    if (programlist==J(1,1,"")) programlist = "_all"
-    if (inname==J(1,1,"")) inname = parallel_randomid(10,"",1,1,1)
-    
-    // Writing log
-    oldsettrace =c("trace")
-    if (oldsettrace == "on") stata("set trace off")
-    stata("cap log close "+inname)
-    stata("log using "+inname+".txt, text replace name(log"+inname+")")
-    stata("noisily program list "+programlist)
-    stata("log close log"+inname)
-    stata("set trace "+oldsettrace)
-    
-    inname = inname+".txt"
-    
-    // Opening files
-    in_fh =_fopen(inname, "r")
-    ou_fh =_fopen(ouname, "rw")
-    
-    // If any error occurs
-    if (ou_fh < 0) {
-        fclose(in_fh)
-        return
-    }
-    
-    fwrite(ou_fh,sprintf("\n"))
-    
-    // REGEX Patterns
-    pathead = "^[^0-9][a-zA-Z_]+(, [a-zA-Z]*)?[:][\s ]*$"
-    patnext = "^[>][\s ]"
-    
-    while ((line = fget(in_fh))!=J(0,0,"")) {
-        // Enters if it is a start of a program
-        if(regexm(line, pathead)) {
-        
-            // Writes the header
-            fput(ou_fh, sprintf("program def %s", subinstr(line, ":", "")))
-            line = fget(in_fh)
-        
-            // While it is whithin the program
-            while (line!=J(0,0,"")) {
-                if (strlen(line) == 0| !regexm(line, "^[\s ]*[0-9]+\.")) { // If it is the last line of the program
-                    fput(ou_fh, sprintf("\nend"))
-                    line = fget(in_fh)
-                    break
-                }
-                else if (regexm(line, patnext)) { // If it is a trimmed version of the program
-                    fwrite(ou_fh, regexr(line, patnext,""))
-                }
-                else { // If it is ok
-                    line = regexr(line, "^[\s ]*[0-9]+\.", "")
-                    fwrite(ou_fh, strltrim(sprintf("\n%s",line)))
-                }
-                line = fget(in_fh)
-            }
-        }
-    }
-    
-    // Cleaning the files
-    fclose(in_fh)
-    unlink(inname)
-    fwrite(ou_fh,sprintf("\n"))
-    fclose(ou_fh)
-    return
-}
-end
-*! {smcl}
-*! {c TLC}{dup 78:{c -}}{c TRC}
-*! {c |} {bf:End of file -program_export.mata-}{col 83}{c |}
 *! {c BLC}{dup 78:{c -}}{c BRC}

@@ -1,7 +1,6 @@
 {smcl}
-{* *! version 0.13.10.22 22oct2013}{...}
-
-{cmd:help parallel}
+{* *! version 1.14.6 13jun2014}{...}
+{cmd:help parallel}{right:also see:  {net "describe miparallel, from(http://fmwww.bc.edu/RePEc/bocode/m)":miparallel}}
 {hline}
 
 {title:Title}
@@ -9,38 +8,121 @@
 {phang}
 {bf:parallel} {hline 2} Stata module for Parallel computing
 
-{title:Syntax}
+{title:Index}
 
-{pstd}Setting the number of clusters (data blocks)
+{p2colset 5 29 29 2}
+{p2col:{bf:{ul:Sections}}}{p_end}
+
+{p2col: 1. {help parallel##syntax:Syntax}}Command syntax.{p_end}
+{p2col: 2. {help parallel##description:Description}}Commands description.{p_end}
+{p2col: 3. {help parallel##details:Details}}How does parellel works.{p_end}
+{p2col: 4. {help parallel##append_how:Parallel Append}}Using -parallel append- syntax.{p_end}
+{p2col: 5. {help parallel##caveates:Caveates}}Things to consider before unsing parallel.{p_end}
+{p2col: 6. {help parallel##tech:Technical note}}Some details under the hood.{p_end}
+{p2col: 7. {help parallel##examples:Examples}}Some examples using parallel{p_end}
+
+{p2colset 5 29 29 2}
+{p2col:{bf:{ul:Available commands}}}{p_end}
+
+{p2col: 1. {help parallel##setclusters:parallel setclusters}}Setting the number of clusters.{p_end}
+{p2col: 2. {help parallel##do:parallel do}}Parallelizing a do-file.{p_end}
+{p2col: 3. {help parallel##prefix:parallel : (prefix)}}Parallelizing a stata command (parallel prefix).{p_end}
+{p2col: 4. {help parallel##bs:parallel bs}}Parallel bootstrapping.{p_end}
+{p2col: 5. {help parallel##bs:parallel sim}}Parallel simulate.{p_end}
+{p2col: 6. {help parallel##append:parallel append}}Multiple file processing and appending.{p_end}
+{p2col: 7. {help parallel##clean:parallel clean}}Removing auziliary files.{p_end}
+{p2col: 8. {help parallel##seelog:parallel seelog}}Checking out clusters' logfiles.{p_end}
+{p2col: 9. {help parallel##version:parallel version}}Query parallel current version.{p_end}
+{p2col:10. {help parallel##break:parallel break}}Query if the mother process has requested to break.{p_end}
+
+
+{marker syntax}{...}
+{title:1. Syntax}
+
+{col 5}{hline}{marker setclusters}{...}
+{pstd}Setting the number of clusters (threads/processors)
 
 {p 8 17 2}
 {cmdab:parallel setclusters} # [, {opt f:orce} 
 {opt s:tatadir}({it:{help filename:stata_path}})]
 
+{col 5}{hline}{col 2}{marker do}{...}
 {pstd}Parallelizing a do-file
 
 {p 8 17 2}
 {cmdab:parallel do}
-{it:{help filename}} [, {opt by}({it:{help varlist}}) {opt f:orce} {opt k:eep} {opt keepl:ast} {opt p:rograms} {opt m:ata} {opt nog:lobal} {opt s:eeds}({it:{help numlist}}) {opt nod:ata}
+{it:{help filename}} [, {opt by}({it:{help varlist}}) {opt f:orce} {opt k:eep} {opt keepl:ast} {opt p:rograms}({it:{help namelist}}) {opt m:ata} {opt nog:lobal} {opt s:eeds}({it:{help numlist}}) {opt nod:ata}
  {opt r:andtype}({it:{help strings:datetime|random.org}}) 
- {opt t:imeout}({it:integer}) 
- {opt pr:ocessors}({it:integer})]
+ {opt t:imeout}({it:#}) 
+ {opt pr:ocessors}({it:#})]
 
-{pstd}Parallelizing a stata command
+{col 5}{hline}{marker prefix}{...}
+{pstd}Parallelizing a stata command (parallel prefix)
 
 {p 8 17 2}
-{cmdab:parallel} [, {opt by}({it:{help varlist}}) {opt f:orce} {opt k:eep} {opt keepl:ast} {opt p:rograms} {opt m:ata} {opt nog:lobal} {opt s:eeds}({it:{help numlist}}) {opt nod:ata} 
+{cmdab:parallel} [, {opt by}({it:{help varlist}}) {opt f:orce} {opt k:eep} {opt keepl:ast} {opt p:rograms}({it:{help namelist}}) {opt m:ata} {opt nog:lobal} {opt s:eeds}({it:{help numlist}}) {opt nod:ata} 
+ {opt r:andtype}({it:{help strings:datetime|random.org}}) 
+ {opt t:imeout}({it:#}) 
+ {opt pr:ocessors}({it:#})]:
+{it:stata_cmd}
+
+{col 5}{hline}{marker bs}{...}
+{pstd}Parallel bootstrapping
+
+{p 8 17 2}
+{cmdab:parallel bs}
+[, {opt exp:ression}({it:{help exp_list}}) {opt p:rograms}({it:{help namelist}}) {opt m:ata} {opt nog:lobal} {opt s:eeds}({it:{help numlist}})
  {opt r:andtype}({it:{help strings:datetime|random.org}}) 
  {opt t:imeout}({it:integer}) 
  {opt pr:ocessors}({it:integer})
- {opt keepu:sing}({it:{help varlist}})]:
-{it:stata_cmd}
+ {it:{help bs:bs_options}}
+ ] [{cmd::} {it:command}]
 
+{col 5}{hline}{marker sim}{...}
+{pstd}Parallel simulate
+
+{p 8 17 2}
+{cmdab:parallel sim}
+, {opt r:eps}({it:#}) [ {opt exp:ression}({it:{help exp_list}}) {opt p:rograms}({it:{help namelist}}) {opt m:ata} {opt nog:lobal} {opt s:eeds}({it:{help numlist}})
+ {opt r:andtype}({it:{help strings:datetime|random.org}}) 
+ {opt t:imeout}({it:#}) 
+ {opt pr:ocessors}({it:#})
+ {it:{help simulate:sim_options}}
+ ] [{cmd::} {it:command}]
+
+{col 5}{hline}{marker append}{...}
+{pstd} Multiple file processing and appending
+
+{p 8 17 2}
+{cmdab:parallel append}
+ [{it:{help filename:file(s)}}] ,
+ {opt d:o}({it:cmd|dofile}) [{opt in}({it:{help in}}) {opt if}({it:{help if}})
+ {opt e:xpression}({it:expand expression (see details)}) {opt pr:ocessors}({it:#})
+ {opt r:andtype}({it:{help strings:datetime|random.org}}) 
+ {opt t:imeout}({it:#})]
+
+{col 5}{hline}{marker clean}{...}
 {pstd}Removing auxiliary files
 
 {p 8 17 2}
-{cmdab:parallel clean} [, {opt e:vent(pll_id)} {opt a:ll} {opt f:orce}]
+{cmdab:parallel clean} [, {opt e:vent({it:pll_id})} {opt a:ll} {opt f:orce}]
 
+{col 5}{hline}{marker seelog}{...}
+{pstd}Checking out clusters' logfiles
+
+{p 8 17 2}
+{cmdab:parallel seelog} [{it:#}] [, {opt e:vent}({it:pll_id})]
+
+{p 8 17 2}
+{cmdab:parallel printlog} [{it:#}] [, {opt e:vent}({it:pll_id})]
+
+{col 5}{hline}{marker version}{...}
+{pstd}Query {cmd:parallel} current version
+
+{p 8 17 2}
+{cmdab:parallel version}
+
+{col 5}{hline}{marker break}{...}
 {pstd}Query if the mother process has requested to break
 
 {p 8 17 2}
@@ -70,8 +152,7 @@ is properly sorted. By using {opt force} the command skips this check.{p_end}
 during the current session.{p_end}
 
 {syntab:Passing Stata/Mata objects}
-{synopt:{opt p:rograms}}In the case of having temporal programs loaded in the session,
-using this option {cmd:parallel} passes them to the clusters.{p_end}
+{synopt:{opt p:rograms}}A list of programs to be passed to each cluster. {p_end}
 {synopt:{opt m:ata}}If the algorithm needs to use mata objects, this option allows
 to pass to each cluster every mata object loaded in the current session (including functions).{p_end}
 {synopt:{opt nog:lobal}}By default {cmd:parallel} takes into account any global macro
@@ -87,6 +168,19 @@ should not try to split or append anything.{p_end}
 generate the seeds for each clusters (default option) or use the current datetime -datetime-
 or random.org API -random.org- (please read the Description section).{p_end}
 
+{syntab:Parallel bootstrap}
+{synopt:{opt exp:ression}}An {help exp_list} to be passed to the {help bootstrap} command.{p_end}
+{synopt:{opt bs_options}} Further options to be passed to the {help bootstrap} command.
+
+{syntab:Parallel simulate}
+{synopt:{opt exp:ression}}An {help exp_list} to be passed to the {help simulate} command.{p_end}
+{synopt:{opt sim_options}} Further options to be passed to the {help simulate} command.
+
+{syntab:Multiple file processing and appending}
+{synopt:{opt d:o}}Stata cmd or dofile.{p_end}
+{synopt:{opt e:xpression}}String. Expression representing file names in the form of
+"{it:{help fmt:%fmts}}, {it:{help numlist: numlist1 [, numlist2 [, ...]]}}"
+
 {syntab:Removing auxiliary files}
 {synopt:{opt e:vent}}Integer. Specifies which executed (and stored) event's files should be removed.{p_end}
 {synopt:{opt a:ll}}Tells {cmd:parallel} to remove every remanent auxiliary files generated by it
@@ -100,7 +194,6 @@ does {cmd:parallel} has to wait until assume that there was a connection error a
 the child process (cluster) won't start. Default value is 60.{p_end}
 {synopt:{opt pr:ocessors}}Integer. If running on StataMP, sets the number of processors
 each cluster should use. Default value is 0 (do nothing).{p_end}
-{synopt:{opt keepu:sing}}Varlist. Subset of variables to be passed to each cluster.{p_end}
 
 {marker description}{...}
 {title:Description}
@@ -112,24 +205,37 @@ improve speed performance of it.
 
 {pstd}
 In order to use {cmd:parallel} it is necesary to set the number of desired clusters
-with which the user wants to work with. To do this the user should use {cmd:parallel setclusters #}
+with which the user wants to work with. To do this the user should use -{cmd:parallel setclusters #}-
 syntaxis, replacing {it:#} with the desired number of clusters. Setting more clusters
 than physical cores the user's computer has it is not recommended (see the {err:WARNING}
 in description).
 {p_end}
 
 {pstd}
-{cmd:parallel do} is the equivalent to {cmd:do}. By using this syntax, the
-loaded dataset will be splitted in the number of clusters specified by {cmd:parallel setclusters}
+-{cmd:parallel do}- is the equivalent (wrapper) to -{cmd:do}-. When using this syntax
+parallel runs the dofile in as many clusters as there where specified by the user, this is,
+start {cmd:$PLL_CLUSTERS} Stata instances in batch mode. By default the
+loaded dataset will be splitted in the number of clusters specified by -{cmd:parallel setclusters}-
 and the {mansection U 16Do-files:do-file} will be executed independently over
-each and every one of the data clusters. After all the parallel-instances stops, the datasets will be appended.
+each and every one of the data clusters, so once after all the parallel-instances
+stops, the datasets will be appended. In order to avoid loading the current
+dataset in the clusters, the user should specify the -{opt nodata}- option.
 {p_end}
 
 {pstd}
-{cmd:parallel :} (as a prefix) allows to, after spliting the loaded dataset,
+-{cmd:parallel :}- (as a prefix) allows to, after spliting the loaded dataset,
 execute a {it:stata_cmd} over the specified number of data clusters in order to
-speed up computations. Like {cmd:parallel do}, after all the parallel-instances
+speed up computations. Like -{cmd:parallel do}-, after all the parallel-instances
 stops, the datasets will be appended.
+{p_end}
+
+{pstd}
+-{cmd:parallel bs}- and -{cmd:parallel sim}- are parallel wrappers for the commands
+-{help bootstrap}- and -{help simulate}-. Specially suited for these algorithms,
+{cmd:parallel} allows conducting embarrassingly parallel computing. In terms of
+syntax, besides cmd names, the only difference that these two commands have with
+their serial versions is how are {help exp_list:expressions} passed (please refer
+to the {help parallel##examples:examples} section for this).
 {p_end}
 
 {pstd}
@@ -140,12 +246,32 @@ becomes handy. With {cmd:parallel clean} the user can remove the last generated
 auxiliar files (default option), an specific parallel instance files (using
 {it:#pll_id} number), or every stored auxiliar file (with {opt all}). For
 security reasons, in-use auxiliary files will not be deleted unless the user
-specifies it through the option {opt:force}, which will override not deleting
-in-use auxiliary files (see the {help parallel##sandbox:sandbox} section for
-more information about it)}
+specifies it through the option {opt force}, which will override not deleting
+in-use auxiliary files (see the {help parallel##tech:Technical note} section for
+more information about it)}.
 
 {pstd}
-Giving {it:N} clusters, within each cluster {cmd:parallel} creates the local 
+In the case of handling multiple files (because it is, for example,
+a big dataset divided into multiple dta files), -{cmd:parallel append}- becomes handy
+as it allows the user to process them simultaneously. By providing a list of files
+and a Stata cmd or dofile, -{cmd:parallel append}- opens and executes the cmd/dofile
+within each file, stores each file results and appends them into a single file.
+Also, if the files to be processed have a pattern base name, the user can provide
+-{cmd:parallel append}- with an expression representing the list of files to be
+processed; for information on how to use this feature, see the section
+{help parallel##append_how:Parallel Append}.
+{p_end}
+
+{pstd}
+If the user needs to allow the mother instance to {cmd:break}, users can insert
+the command -{cmd:parallel break}- (stata) and the functions 
+-{cmd:parallel_break()}- or -{cmd:_parallel_break()}- (mata) in some parts of his
+code. These commands/functions check whether the user has pressed the 
+{cmd:-break-} key in the mother process.
+{p_end}
+
+{pstd}
+Giving {it:N} clusters, within each cluster {cmd:parallel} creates the local/global 
 macros {it:pll_id} (equal for all the clusters) and {it:pll_instance} (ranging
 from 1 up to {it:N}, equalling 1 inside the first and {it:N} inside the last).
 Also the global macros {it:PLL_CLUSTERS} and {it:PLL_DIR} are available within
@@ -153,18 +279,10 @@ each cluster.
 {p_end}
 
 {pstd}
-If the user needs to allow the mother instance to {cmd:break}, users can insert
-the command {cmd:parallel break} (stata) and the functions 
-{cmd:parallel_break()} or {cmd:_parallel_break()} (mata) in some parts of his
-code. These commands/functions check whether the user has pressed the 
-{cmd:-break-} key in the mother process.
-{p_end}
-
-{pstd}
 As by now, {cmd:parallel} by default automatically identifies stata's
 executable file path. This is necessary as it is used to run stata in batch mode
 (the mainstream of the module). Either way, after some reports, that file path is not
-always correctly identified; where the option {opt s:tatadir}() in {cmd:parallel setclusters}
+always correctly identified; where the option {opt s:tatadir}() in -{cmd:parallel setclusters}-
 can be used to manually set it.
 {p_end}
 
@@ -176,13 +294,6 @@ seeds, {cmd:parallel} generates its own numlist of seeds using three diferent op
 generate each seed, restoring the original seed afterwards; or
 (3) using random.org API (requires internet conection) to directly generate each
 seed.
-{p_end}
-
-{pstd}
-For large datasets it may be convenient to work only with the necessary variables,
-this is, to pass only a group of variables to each clusters; this can be done through
-the {opt keepusing} option. This option tells {cmd:parallel} what variables are
-to be passed to each cluster, by doing this the memory load can be reduced.
 {p_end}
 
 {pstd}
@@ -219,9 +330,12 @@ to the machines physical cores versus it logical's shows small though significan
 
 {pstd}
 {cmd:parallel} is especially handy when it comes to implementing loop-based
-simulation models (or simply loops), Stata commands such as reshape, or any job
+simulation models (or simply loops), Stata commands such as reshape , or any job
 that (a) can be repeated through data-blocks, and (b) routines that processes big
-datasets.
+datasets (see the {help parallel##append_how:append section}). Furthermore, the commands
+-{help parallel##bs:parallel bs}- and -{help parallel##sim:parallel sim}- are
+specially designed to easily implement bootstrapping and (monte carlo) simulations
+in parallel fashion.
 {p_end}
 
 {pstd}
@@ -234,8 +348,71 @@ After several tests, it has been proven that--thanks to how {cmd:parallel} has b
 written--it is possible to use the algorithm in such a way that other techniques
 of parallel computing can be implemented; such as Monte Carlo Simulations, 
 simultaneously running models, etc.. An extensive
-example through Monte Carlo Simulations is provided {browse "http://fmwww.bc.edu/repec/bocode/p/parallel.pdf":here}
+example through Monte Carlo Simulations is provided
+{browse "http://fmwww.bc.edu/repec/bocode/p/parallel.pdf":here}.
 {p_end}
+
+{marker append_how}{...}
+{title:Parallel Append}
+
+{pstd}Imagine we have several dta files named -income.dta- stored in a set of folders
+ranging 2008_01 up to 2012_12, this is, a total of 60 files (12 times 5) monthly ordered
+which may look something like this: {p_end}
+
+{col 10}{it:2008_01/income.dta}
+{col 10}{it:2008_02/income.dta}
+{col 10}{it:2008_03/income.dta}
+
+{col 10}{it:...more files...}
+
+{col 10}{it:2010_01/income.dta}
+{col 10}{it:2010_02/income.dta}
+{col 10}{it:2010_03/income.dta}
+
+{col 10}{it:...more files...}
+
+{col 10}{it:2012_10/income.dta}
+{col 10}{it:2012_11/income.dta}
+{col 10}{it:2012_12/income.dta}
+
+{pstd}Now, imagine that for each and every one of those files we would like to
+execute the following program:{p_end}
+
+{tab}{cmd: program def myprogram}
+{tab}{cmd:{tab} gen female = gender == "female"}
+{tab}{cmd:{tab} collapse (mean) income, by(female) fast}
+{tab}{cmd: end}
+
+{pstd}Instead of writing a forval/foreach loop (which would be the natural
+solution for this situation), -{cmd:parallel append}- allows us to smoothly solve
+this with the following command.{p_end}
+
+{tab}{cmd:. parallel append, do(myprogram) p(myprogram)} ///
+{tab}{tab}{cmd:e("%g_%02.0f/income.dta, 2008/2012, 1/12")}
+
+{pstd}Where element by element, we are telling parallel:{p_end}
+{tab}(1) {cmd:do(myprogram)}: execute the command -{cmd:myprogram}-,
+{tab}(1) {cmd:p(myprogram)}: -{cmd:myprogram}- is a usr written program, and
+{tab}(1) {cmd:e("%g_%02.0f/income.dta, 2008/2012, 1/12")}: this should process files 2008_01/income.dta up to 2012_12/income.dta.
+
+{pstd}Besides of the simplicity of its syntax, the advantage of using -{cmd:parallel append}-
+lies in doing so in a parallel fashion, this is, instead of processing one file
+at a time, {cmd:parallel} manages to process these files in groups of as
+many files as clusters are set. Step-by-step, what this command does is:{p_end}
+
+{p2colset 8 11 11 4}
+{p2col:1.}Distribute groups of files accross clusters{p_end}
+
+{tab}Once each cluster starts, for each dta file
+
+{p2col:2.}Opens the file using {ifin} acorddingly to {opt in} and {opt if} options.{p_end}
+{p2col:3.}Executes the command/dofile specified by the user.{p_end}
+{p2col:3.}Stores the results in a temp dta file.{p_end}
+
+{tab}Finally, once all the files have been processed
+
+{p2col:4.}Appends all the resulting files into a single one.{p_end}
+
 
 {marker caveats}{...}
 {title:Caveats}
@@ -244,7 +421,8 @@ example through Monte Carlo Simulations is provided {browse "http://fmwww.bc.edu
 When the {it:stata_cmd} or {it:do-file} {help saved_results:saves results},
 as {cmd: parallel} runs Stata in {browse "http://www.stata.com/support/faqs/windows/batch-mode/":batch mode},
 none of the results will be kept. This is also true for {help matrix:matrices},
-{help scalar:scalars} and {help mata:mata objects}.
+{help scalar:scalars}, {help mata:mata objects}, {help return:returns}, or whatever
+other object different from data.
 {p_end}
 
 {pstd}
@@ -253,29 +431,37 @@ and {help mata:mata objects}, in the current version it is not capable of doing 
 {help matrix:matrices} or {help scalar:scalars}.
 {p_end}
 
-{pstd}
-Including {cmd:parallel} within ado-files which contains locally-defined programs it
-is not recommended due to known issues. By now parallel can not correctly
-interpret these kind of programs during the loading process causing errors.
-{p_end}
 
-{marker sandbox}{...}
-{title:Sandbox}
+{marker tech}{...}
+{title:Technical note}
 
 {pstd}
 In order to protect a {it:pll_id} code (and thus anciliary files), once {cmd:parallel}
-is called it creates a new file called {it:__pll}[{it:pll_id}]{it:sandbox} which
-forbids {cmd:parallel clean} from deleting any auxiliary file used by that process
-and reserves the {it:parallel_id}. Once every child process has finished, 
+is called it creates a new file called {it:__pll}[{it:pll_id}]{it:sandbox} 
+(stored at c(tmpdir), in your case: {ul:{ccl tmpdir}}) which
+forbids -{cmd:parallel clean}- from deleting any auxiliary file used by that process
+and reserves the {it:pll_id}. Once every child process has finished, 
 {cmd:parallel}'s sandbox cleans up and frees the {it:pll_id}.
 {p_end}
 
 {pstd}
 If for any reason the algorithm breaks due to a flaw or crush of the system,
-the sandbox file will not be deleted, but the user will be allowed to do so
-manualy (moving the file(s) to the OS recycle bin) or using {cmd:parallel 
-clean, force} syntax.
+the sandbox file and the rest of auxiliary files will not be deleted. In order
+to clean up this, the user will be able to do so manualy (moving the file(s) to
+the OS recycle bin) or using {help parallel#clean:parallel clean, all force}
+syntax. This way all sandbox files in th c(tmpdir) folder and auxiliary files
+stored at the current directory will be deleted.
 {p_end}
+
+{pstd}
+In earlier versions of {cmd:parallel}, {help tempfile:tempfiles} generation was
+not safe as while running multiple stata instances simultaneously these could
+overwrite each other's tempfiles. Starting version 1.14, this is no longer a
+problem as each stata instance starts with a diferent {cmd:c(tmpdir)} location.
+This way, instances' tempfile management will not interfere with each other, allowing
+to safely use commands or algorithms implementing {help preserve:preserve, restore}.
+{p_end}
+
 
 {marker examples}{...}
 {title:Example 1: using prefix syntax}
@@ -284,18 +470,18 @@ clean, force} syntax.
 blood-pressure measurement ({it:bp}) by patient.{p_end}
 
 {pstd}Setup for a quad-core computer{p_end}
-	{cmd:. sysuse bplong.dta}
-	{cmd:. sort patient}
+{tab}{cmd:. sysuse bplong.dta}
+{tab}{cmd:. sort patient}
 	
-	{cmd:. parallel setclusters 4}
+{tab}{cmd:. parallel setclusters 4}
 
 {pstd}Computes the maximum of {it:bp} for each patient. We add the option {opt by(patient)}
 to tell parallel not to splitt stories.{p_end}
-	{cmd:. parallel, by(patient): by patient: egen max_bp = max(bp)}
+{tab}{cmd:. parallel, by(patient): by patient: egen max_bp = max(bp)}
 	
 {pstd}Which is the ``parallel way'' to do:{p_end}
 
-	{cmd:. by patient: egen max_bp = max(bp)}
+{tab}{cmd:. by patient: egen max_bp = max(bp)}
 	
 {pstd}Giving you the same result.{p_end}
 	
@@ -311,36 +497,36 @@ Using {cmd:parallel}, the proper way to do this would be using the ``parallel do
 syntax
 {p_end}
 
-	{cmd:. use mybigpanel.dta, clear}
+{tab}{cmd:. use mybigpanel.dta, clear}
 
-	{cmd:. parallel setclusters 4}
-	{cmd:. parallel do mymodel.do}
+{tab}{cmd:. parallel setclusters 4}
+{tab}{cmd:. parallel do mymodel.do}
 	
-	{cmd:. collapse ...}
+{tab}{cmd:. collapse ...}
 
 {pstd}where {it:mymodel.do} would look something like this{p_end}
 	
-	{hline 35} begin of do-file {hline 12}
-        {cmd:local maxiter = _N}
-        {cmd:forval i = 1/`maxiter'} {cmd:{c -(}}
-                        {cmd:/* Break key check (this line is optional) */}
-                        {cmd:parallel break}
-			{it:...some routine...}
-        {cmd:{c )-}}
-	{hline 35} end of the do-file {hline 10}
+{tab}{hline 35} begin of do-file {hline 12}
+{tab}{tab}{cmd:local maxiter = _N}
+{tab}{tab}{cmd:forval i = 1/`maxiter'} {cmd:{c -(}}
+{tab}{tab}{tab}{cmd:/* Break key check (this line is optional) */}
+{tab}{tab}{tab}{cmd:parallel break}
+{tab}{tab}{tab}{it:...some routine...}
+{tab}{tab}{cmd:{c )-}}
+{tab}{hline 35} end of the do-file {hline 10}
 
 {pstd}Or, in the case of using mata, this would look something like this{p_end}
 
-	{hline 35} begin of do-file {hline 12}
-        {cmd:mata:}
-        {cmd:N=c("N")}
-        {cmd:for(i = 1;i<=N;i++) {c -(}}
-                        {cmd:/* Break key check (this line is optional) */}
-                        {cmd:parallel_break()}
-			{it:...some routine...}
-        {cmd:{c )-}}
-	{hline 35} end of the do-file {hline 10}
-{marker examples}{...}
+{tab}{hline 35} begin of do-file {hline 12}
+{tab}{tab}{cmd:mata:}
+{tab}{tab}{cmd:N=c("N")}
+{tab}{tab}{cmd:for(i = 1;i<=N;i++) {c -(}}
+{tab}{tab}{tab}{cmd:/* Break key check (this line is optional) */}
+{tab}{tab}{tab}{cmd:parallel_break()}
+{tab}{tab}{tab}{it:...some routine...}
+{tab}{tab}{cmd:{c )-}}
+{tab}{hline 35} end of the do-file {hline 10}
+
 {title:Example 3: setting the right path}
 
 {pstd}In the case of {cmd:parallel} setting the stata.exe's path wrongly, using
@@ -348,7 +534,53 @@ syntax
 {it:"C:\Archivos de programa\Stata12/stata.exe"} is the right path we only have
 to write:
 
-	{cmd:. parallel setclusters 2, s("C:\Archivos de programa\Stata12/stata.exe")}
+{tab}{cmd:. parallel setclusters 2, s("C:\Archivos de programa\Stata12/stata.exe")}
+
+
+{title:Example 4: Using -parallel bs-}
+
+{pstd}In this example we'll evaluate a regression model using bootstrapping{p_end}
+
+{pstd}Setup for a quad-core computer{p_end}
+{tab}{cmd:. sysuse auto, clear}
+	
+{tab}{cmd:. parallel setclusters 4}
+
+{pstd}Running parallel bs.{p_end}
+{tab}{cmd:. parallel bs: reg price c.weig##c.weigh foreign rep}
+	
+{pstd}Which is the ``parallel way'' to do:{p_end}
+
+{tab}{cmd:. bs: reg price c.weig##c.weigh foreign rep}
+
+
+{title:Example 5: Using -parallel sim-}
+
+{pstd}Example from {help simulate##examples:simulate}{p_end}
+
+{pstd}Setup for a quad-core computer{p_end}
+{tab}{cmd:. parallel setclusters 4}
+
+{pstd}Experiment that will be performed{p_end}
+{tab}{cmd:program define lnsim, rclass}
+{tab}{tab}{cmd:version {ccl stata_version}}
+{tab}{tab}{cmd:syntax [, obs(integer 1) mu(real 0) sigma(real 1) ]}
+{tab}{tab}{cmd:drop _all}
+{tab}{tab}{cmd:set obs `obs'}
+{tab}{tab}{cmd:tempvar z}
+{tab}{tab}{cmd:gen `z' = exp(rnormal(`mu',`sigma'))}
+{tab}{tab}{cmd:summarize `z'}
+{tab}{tab}{cmd:return scalar mean = r(mean)}
+{tab}{tab}{cmd:return scalar Var  = r(Var)}
+{tab}{cmd:end}
+
+{pstd}Running parallel sim.{p_end}
+{tab}{cmd:. parallel sim, expr(mean=r(mean) var=r(Var)) reps(10000): lnsim, obs(100)}
+	
+{pstd}Which is the ``parallel way'' to do:{p_end}
+
+{tab}{cmd:. simulate mean=r(mean) var=r(Var), reps(10000): lnsim, obs(100)}
+
 
 {marker saved_results}{...}
 {title:Saved results}
@@ -364,9 +596,20 @@ to write:
 {synopt:{cmd:r(pll_t_calc)}}Time took to complete the parallel job{p_end}
 {synopt:{cmd:r(pll_t_fini)}}Time took to appending and cleaning{p_end}
 {synopt:{cmd:r(pll_t_reps)}}In the case of {opt keeptime}, the number of time measures performed.{p_end}
+{synopt:{cmd:r(pll_errs)}}Number of clusters which stopped with an error.{p_end}
 
 {p2col 5 20 24 2: Macros}{p_end}
 {synopt:{cmd:r(pll_dir)}}Directory where parallel ran and stored the auxiliary files.{p_end}
+
+{pstd}Stores the following global macros:{p_end}
+
+{synoptset 20 tabbed}{...}
+{synopt:{cmd:$LAST_PLL_DIR}}A copy of {cmd:r(pll_dir)}{p_end}
+{synopt:{cmd:$LAST_PLL_N}}A copy of {cmd:r(pll_n)}{p_end}
+{synopt:{cmd:$LAST_PLL_ID}}A copy of {cmd:r(pll_id)}{p_end}
+{synopt:{cmd:$PLL_LASTRNG}}Number of times that -{cmd:parallel_randomid()}- has
+been executed.{p_end}
+
 
 {marker references}{...}
 
@@ -381,8 +624,24 @@ to write:
 {title:Author}
 
 {pstd}
-George Vega Yon, Superindentencia de Pensiones. {browse "mailto:gvega@spensiones.cl"}
+George Vega Yon, California Institute of Technology. {browse "mailto:gvegayon@caltech.edu"}
+{browse "http://ggvega.cl"}
 {p_end}
+
+{title:Up-to-date versions}
+
+{pstd}
+You can always have access to the lastest version of {cmd:parallel}. One option
+is from its github repo:
+{p_end}
+
+    {phang}{browse "https://github.com/gvegayon/parallel"}{p_end}
+	
+{pstd} Or from the author's personal website:{p_end}
+
+	{cmd:. net install parallel, from(http://software.ggvega.com/stata) replace}
+	{cmd:. mata mata mlib index}
+	
 
 {title:Contributors}
 
@@ -390,35 +649,40 @@ George Vega Yon, Superindentencia de Pensiones. {browse "mailto:gvega@spensiones
 Damian C. Clarke (Oxford University, England), Felix Villatoro (Superintendencia de Pensiones, Chile),
 Eduardo Fajnzylber (Universidad Adolfo Ib{c a'}{c n~}ez, Chile), Eric Melse (CAREM, Netherlands),
 Tom{c a'}s Rau (Universidad Cat{c o'}lica, Chile), 
-Research Division (Superindentendia de Pensiones, Chile) 
-and attendees to the Stata conference 2013 (New Orleans).
+Research Division (Superindentendia de Pensiones, Chile), 
+attendees to the Stata conference 2013 (New Orleans),
+Brian Quistorff (University of Maryland) and
+Timothy Mak (University of Hong Kong).
 {p_end}
 
 {title:{cmd:mata} source code}
 
 {pstd}
 Most of {cmd:parallel} has been programmed in {cmd:mata}. This means that, as a difference
-from typical ado files, {cmd:parallel} is distributed in {cmd:lcnu} mata library
-(compiled code)and thus source code can not be reached directly by users. Given
+from typical ado files, {cmd:parallel} is distributed in {cmd:lparallel} mata library
+(compiled code) and thus source code can not be reached directly by users. Given
 this, the help file {cmd:{help parallel_source:parallel_source.sthlp}} is included
 in the package, help file which contains the source code in a fancy way.
 
 {pstd}
 In order to get acces to different sections of the source code you can follow these
 links:
-
-        Export global macros {col 58} {help parallel_source##globals_export:globals_export.mata}
-        Normalize a filepath {col 58} {help parallel_source##normalizepath:normalizepath.mata}
+		
+        Stops a cluster after the user pressed break {col 58} {help parallel_source##parallel_break:parallel_break.mata}
         Remove auxiliary files {col 58} {help parallel_source##parallel_clean:parallel_clean.mata}
+        Distributes observations across clusters {col 58} {help parallel_source##parallel_divide_index:parallel_divide_index.mata}
+        Export global macros {col 58} {help parallel_source##parallel_export_globals:parallel_export_globals.mata}
+        Export programs {col 58} {help parallel_source##parallel_export_programs:parallel_export_programs.mata}
         Wait until a cluster finishes {col 58} {help parallel_source##parallel_finito:parallel_finito.mata}
         (on development) {col 58} {help parallel_source##parallel_for:parallel_for.mata}
+        Normalize a filepath {col 58} {help parallel_source##parallel_normalizepath:parallel_normalizepath.mata}
+        Generate random alphanum {col 58} {help parallel_source##parallel_randomid:parallel_randomid.mata}
         Lunch simultaneous Stata instances in batch mode {col 58} {help parallel_source##parallel_run:parallel_run.mata}
+        Set of tools to protect parallel aux files {col 58} {help parallel_source##parallel_sandbox:parallel_sandbox.mata}
         Set the number of clusters {col 58} {help parallel_source##parallel_setclusters:parallel_setclusters.mata}
         Set the Stata EXE direcroty {col 58} {help parallel_source##parallel_setstatadir:parallel_setstatadir.mata}
+        Write a ``diagnosis'' {col 58} {help parallel_source##parallel_write_diagnosis:parallel_write_diagnosis.mata}
         Write a dofile to be paralellized {col 58} {help parallel_source##parallel_write_do:parallel_write_do.mata}
-        Export programs {col 58} {help parallel_source##program_export:program_export.mata}
-        Generate random alphanum {col 58} {help parallel_source##randomid:randomid.mata}
-        Write a ``diagnosis'' {col 58} {help parallel_source##write_diagnosis:write_diagnosis.mata}
 
 {title:Also see}
 

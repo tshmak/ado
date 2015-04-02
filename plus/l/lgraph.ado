@@ -1,4 +1,5 @@
-*! version 3.0.1 Timothy Mak Apr2013.
+*! version 3.0.2 Timothy Mak Sep2014.
+* Corrected bug in the err(`ci') option introduced in version 3.0.0
 program define lgraph, rclass
 version 9
 
@@ -207,8 +208,8 @@ else if "`ci'" != "" & (`"`scaleparam'"' == "sepoisson" | `"`scaleparam'"' == "s
 else if `"`scaleparam'"' != "" qui gen `scaleparam2' = scaleparam
 
 if `"`scaleparam'"' != "" {
-	qui gen lbound = statistic - scaleparam
-	qui gen ubound = statistic + scaleparam
+	qui gen lbound = statistic - `scaleparam2'
+	qui gen ubound = statistic + `scaleparam2'
 }
 
 // Setting colors

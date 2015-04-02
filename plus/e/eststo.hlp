@@ -1,5 +1,5 @@
 {smcl}
-{* 07jan2009}{...}
+{* 13sep2013}{...}
 {hi:help eststo}{right:also see: {helpb esttab}, {helpb estout}, {helpb estadd}, {helpb estpost}}
 {right: {browse "http://repec.org/bocode/e/estout"}}
 {hline}
@@ -330,7 +330,7 @@ Bill Gould suggested to make {cmd:eststo} "byable".
 {title:Author}
 
 {p 4 4 2}
-Ben Jann, ETH Zurich, jannb@ethz.ch
+Ben Jann, Institute of Sociology, University of Bern, jann@soz.unibe.ch
 
 
 {title:Also see}

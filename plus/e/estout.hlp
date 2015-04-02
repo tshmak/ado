@@ -1,5 +1,5 @@
 {smcl}
-{* 09mar2009}{...}
+{* 02jun2014}{...}
 {cmd:help estout}{right:also see: {helpb esttab}, {helpb eststo}, {helpb estadd}, {helpb estpost}}
 {right: {browse "http://repec.org/bocode/e/estout"}}
 {hline}
@@ -104,6 +104,10 @@ transpose {cmd:e(}{it:myel}{cmd:)} for tabulation
 
       {helpb estout##drop:{ul:d}rop}{cmd:(}{it:droplist}{cmd:)}{col 38}{...}
 drop individual coefficients
+      [{cmdab:no:}]{helpb estout##omitted:{ul:omit}ted}{col 38}{...}
+include omitted coefficients
+      [{cmdab:no:}]{helpb estout##baselevels:{ul:base}levels}{col 38}{...}
+include base levels
       {helpb estout##keep:{ul:k}eep}{cmd:(}{it:keeplist}{cmd:)}{col 38}{...}
 keep individual coefficients
       {helpb estout##order:{ul:o}rder}{cmd:(}{it:orderlist}{cmd:)}{col 38}{...}
@@ -123,7 +127,7 @@ apply transformations to coefficients
         {it:subopt}: {cmdab:p:attern:(}{it:pattern}{cmd:)}]{cmd:)}{col 38}{...}
 select models
       {helpb estout##margin:{ul:m}argin}[{cmd:(}{cmd:u}|{cmd:c}|{cmd:p}{cmd:)}] | {cmdab:nom:argin}{col 38}{...}
-report marginal effects/elasticities
+report marginal effects after {helpb mfx}
       {helpb estout##discrete:{ul:di}screte}{cmd:(}{it:string}{cmd:)} | {cmdab:nodi:screte}{col 38}{...}
 identify 0/1 variables (if {cmd:margin})
       {helpb estout##meqs:{ul:meq}s}{cmd:(}{it:eq_list}{cmd:)}{col 38}{...}
@@ -199,6 +203,8 @@ make use of variable labels
 abbreviate long names and labels
       [{cmdab:no:}]{helpb estout##wrap:wrap}{col 38}{...}
 wrap long labels (if space permits)
+      {helpb estout##interaction:{ul:interact}ion}{cmd:(}{it:string}{cmd:)}{col 38}{...}
+specify interaction operator
       {helpb estout##title:{ul:ti}tle}{cmd:(}{it:string}{cmd:)}{col 38}{...}
 specify a title for the table
       {helpb estout##note:note}{cmd:(}{it:string}{cmd:)}{col 38}{...}
@@ -430,7 +436,7 @@ label the table's left stub
     or {cmd:cell(ci_bc[ll] ci_bc[ul])} to tabulate the lower and upper
     bounds of the bias-corrected confidence intervals after {helpb bootstrap}.
     The default is to report the results from the first row.
-    Also see the {cmd:eform} and {cmd:margin} options for more information
+    Also see the {cmd:eform} and {cmd:transform()} options for more information
     on the kinds of statistics that can be displayed.
 
 {p 8 8 2}
@@ -594,6 +600,18 @@ label the table's left stub
     Specify the {cmd:relax} suboption to allow {it:droplist} to contain elements
     for which no match can be found.
     {p_end}
+{marker omitted}
+{p 4 8 2}
+    {cmd:omitted} includes omitted coefficients (only relevant in Stata 11 or 
+    newer). This is the default. Type {cmd:noomitted} to drop omitted 
+    coefficients.
+    {p_end}
+{marker baselevels}
+{p 4 8 2}
+    {cmd:baselevels} includes base levels of factor variables (only relevant 
+    in Stata 11 or newer). This is the default. Type {cmd:nobaselevels} to drop 
+    base levels of factor variables.
+    {p_end}
 {marker keep}
 {p 4 8 2}
     {cmd:keep(}{it:keeplist} [{cmd:, relax}]{cmd:)} selects the coefficients to
@@ -621,7 +639,7 @@ label the table's left stub
     coefficients at the end of the table body. The syntax for {it:groups}
     is
 
-            {it:group} [ {it:group} {it:...} ]
+            "{it:group}" [ "{it:group}" {it:...} ]
 
 {p 8 8 2}
     where a {it:group} is
@@ -631,9 +649,8 @@ label the table's left stub
 {p 8 8 2}
     and {it:list} is a list of coefficient specifications as defined in
     {cmd:drop()} above. The single groups should be enclosed in quotes
-    unless there is only one group and "{it:name} =" is specified. If
-    "{it:name} =" is omitted, the first element of {it:list} is used as
-    name. Note that {it:name} may contain spaces.
+    unless there is only one group and {it:name} is specified. Note that 
+    {it:name} may contain spaces.
 
 {p 8 8 2}
     For example, if some of the models contain a set of year
@@ -644,7 +661,11 @@ label the table's left stub
 {p 8 8 2}
     to drop the dummies from the table and add a "year effects" row
     containing "Yes" for models in which {it:at least one} of the dummies
-    is present, and "No" for the other models.
+    is present, and "No" for the other models. Furthermore, if some models 
+    also contain a set of region dummies, say {cmd:reg_1} through 
+    {cmd:reg_17}, you could type
+    
+            {com}estout{txt} {it:...}{com}, indicate("years = y1 y2 y3" "regions = reg_*"){txt}
 
 {p 8 8 2}
     Use the {cmd:labels()} suboption to redefine the indication labels to
@@ -795,12 +816,24 @@ label the table's left stub
     specify the {cmd:meqs()} option. Alternatively, use the {cmd:keep()} and
     {cmd:drop()} options to eliminate redundant rows. The {cmd:equations()}
     option might also be of help here.
+    
+{p 8 8 2}
+    As of Stata 11, the use of {helpb mfx} is no longer suggested, since 
+    {helpb mfx} has been superseded by {helpb margins}. Results from 
+    {helpb margins} can directly be tabulated by {cmd:estout} as long as
+    the {cmd:post} option is specified with {helpb margins}. Alternatively, 
+    you may add results from {helpb margins} to an existing 
+    model using {helpb estadd:estadd margins} or 
+    {helpb estpost:estpost margins}. See the examples on tabulating results
+    from {helpb margins} at 
+    {browse "http://repec.org/bocode/e/estout/advanced.html"}.
     {p_end}
 {marker discrete}
 {p 4 8 2}
     {cmd:discrete(}{it:string}{cmd:)} may be used to override the default symbol and
-    explanatory text used to identify dummy variables when reporting marginal
-    effects. The first token in {it:string} is used as the symbol. The default is:
+    explanatory text used to identify dummy variables when applying the 
+    {helpb estout##margin:margin} option. The first token in {it:string} is 
+    used as the symbol. The default is:
 
 {p 12 12 2}
         {inp:discrete(" (d)" for discrete change of dummy variable from 0 to 1)}
@@ -819,9 +852,10 @@ label the table's left stub
     {p_end}
 {marker meqs}
 {p 4 8 2}
-    {cmd:meqs(}{it:eq_list}{cmd:)} specifies that marginals be printed only for the
+    {cmd:meqs(}{it:eq_list}{cmd:)} specifies that marginal effects requested 
+    by the {helpb estout##margin:margin} option be printed only for the
     equations in {it:eq_list}. Specifying this option does not affect how the
-    marginals are calculated.  An {it:eq_list} comprises one or more equation
+    marginal effects are calculated.  An {it:eq_list} comprises one or more equation
     names (without colons) separated by white space. If you use the
     {cmd:equations()} option to match equations, be sure to refer to the matched
     equation names and not to the original equation names in the models.
@@ -1151,6 +1185,13 @@ label the table's left stub
     a {cmd:varwidth()} is specified. The {cmd:wrap} option is only useful if
     several parameter statistics are printed beneath one another and, therefore,
     white space is available beneath the labels.
+    {p_end}
+{marker interaction}
+{p 4 8 2}
+    {cmd:interaction(}{it:string}{cmd:)} specifies the string to be used 
+    as delimiter for interaction terms (only relevant in Stata 11 or newer). The
+    default is {cmd:interaction(" # ")}. For {cmd:style(tex)} the default is 
+    {cmd:interaction(" $\times$ ")}.
     {p_end}
 {marker title}
 {p 4 8 2}
@@ -1602,7 +1643,6 @@ The following suboptions may be applied within the {cmd:matrix()},
         {help estout##ex3:Summary statistics only}
         {help estout##ex4:Table of descriptives}
         {help estout##ex5:Unstack multiple equations}
-        {help estout##ex6:Marginal effects}
         {help estout##ex7:Tabulating a matrix}
 
 {p 4 4 2} Please first read the {help estout##intro:Introduction}. The
@@ -1958,32 +1998,6 @@ p-value of the model), as well as any numeric or string scalars contained in the
         {txt}chi2        {res}     89.73586     145.3912     318.6174{txt}
         {txt}p           {res}     2.50e-19     2.68e-32     6.50e-70{txt}
         {txt}{hline 51}
-{marker ex6}
-{dlgtab:Marginal effects}
-
-        {com}. generate record = 0
-        {txt}
-        {com}. replace record = 1 if rep > 3
-        {txt}(34 real changes made)
-
-        {com}. eststo raw: quietly logit foreign mpg record
-        {txt}
-        {com}. eststo mfx: quietly mfx
-        {txt}
-        {com}. estout raw mfx, cells("b Xmfx_X(pattern(0 1))" se(par)) margin legend
-        {res}
-        {txt}{hline 51}
-        {txt}                      raw          mfx
-        {txt}                     b/se         b/se       Xmfx_X
-        {txt}{hline 51}
-        {txt}mpg         {res}     .1079219     .0184528      21.2973{txt}
-                    {res}   (.0565077)   (.0101674)             {txt}
-        {txt}record (d)  {res}     2.435068     .4271707     .4594595{txt}
-                    {res}   (.7128444)   (.1043178)             {txt}
-        {txt}_cons       {res}    -4.689347                          {txt}
-                    {res}   (1.326547)                          {txt}
-        {txt}{hline 51}
-        {txt}(d) for discrete change of dummy variable from 0 to 1
 {marker ex7}
 {dlgtab:Tabulating a matrix}
 
@@ -2413,7 +2427,7 @@ Vince Wiggins.
 {marker aut}
 {title:Author}
 
-    Ben Jann, ETH Zurich, jannb@ethz.ch
+    Ben Jann, Institute of Sociology, University of Bern, jann@soz.unibe.ch
 
 {marker als}
 {title:Also see}

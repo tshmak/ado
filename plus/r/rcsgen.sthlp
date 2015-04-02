@@ -34,6 +34,7 @@
 {synopt :{opt fw(varname)}}name of variable containing weights when generating knots using the {cmd:df} or {cmd:percentile} options{p_end}
 {synopt :{opt rev:erse}}derives the spline variables in reversed order{p_end}
 {synopt :{opt sca:lar(#)}}a single value to calculate the spline basis for{p_end}
+{synopt :{opt cent:er(#)}}a value to center the spline basis around{p_end}
 
 	
 {p 4 4 4}
@@ -90,7 +91,14 @@ For example in survival (time-to-event) data when using splines for the time sca
 {phang}
 {opt scalar} will calculate the spline variables for a single value and store the results in a series of Stata scalars.
 It is useful when obtaining in or out of sample predictions in large datasets and you want to predict at a certain value
-of {it:varname}. 
+of {it:varname}.
+
+{phang}
+{opt center} will center the spline variables around a single value.
+This option is useful if you are using {cmd:rcsgen} to capture the non-linear effect
+for a continuous covariate and would like to set a reference value, which will also
+impact on the constant term.
+
 
 {title:Example:}
 {pstd} You can specify where to position the knots.
@@ -109,7 +117,25 @@ at 0th 33rd 67th and 100th centiles of {opt weight}.
 {cmd:. twoway (rarea lci uci weight, sort) ///}
 {cmd:         (scatter mpg weight, sort) ///}
 {cmd:         (line pred weight, sort lcolor(black)), legend(off)}
-         {it:({stata "rcsgen_example":click to run})}
+         {it:({stata "rcsgen_example 1":click to run})}
+
+
+{pstd}
+Below is an example of the center option. A non linear effect of age is modelled in a Cox model using 
+{cmd: stcox}. When generating the spline variables the center(60) option means that the 
+reference age (when all spline variables are equal to zero) is 60 years.  The hazard ratio
+as a function of age is obtained using the {help partpred} command available from SSC. 		 
+		 
+{cmd:. webuse brcancer, clear}
+{cmd:. stset rectime, f(censrec==1)}
+{cmd:. rename x1 age}
+{cmd:. rcsgen age, gen(agercs) df(3) center(60)}
+{cmd:. stcox agercs1-agercs3 hormon}
+{cmd:. partpred hr, for(agercs*) ci(hr_lci hr_uci)}
+{cmd:. twoway (rarea hr_lci hr_uci age, sort) ///}
+{cmd:.        (line hr age, sort lcolor(black)) ///}
+{cmd:.        , legend(off) yscale(log)}
+         {it:({stata "rcsgen_example 2":click to run})}
 
 		 
 {title:Authors}
@@ -123,7 +149,7 @@ Paul Lambert ({browse "mailto:paul.lambert@le.ac.uk":paul.lambert@le.ac.uk}) add
 if2, fw and scalar options. He also wrote the mata code for the Gram-Schmidt orthogonalization (as opposed to using the {help orthog} command).
 
 {p 2 2 2}
-Mark Rutherford ({browse "mailto:mjr40@le.ac.uk":mjr40@le.ac.uk}) added the df and bknots options.
+Mark Rutherford ({browse "mailto:mjr40@le.ac.uk":mjr40@le.ac.uk}) added the df, bknots and center options.
 
 {p 2 2 2}
 Therese Andersson ({browse "mailto:therese.m-l.andersson@ki.se":therese.m-l.andersson@ki.se}) added the reverse option.

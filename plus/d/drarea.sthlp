@@ -1,6 +1,5 @@
-
 {smcl}
-{* 29 September 2013}{...}
+{* 12 May 2014}{...}
 {cmd:help drarea}
 {hline}
 
@@ -75,6 +74,13 @@ In this example two additional twoway plots are added. Note that each additional
 
 {phang}
 {stata drarea high low high2 low2 date in 1/20, twoway((rspike high low date)(scatter high2 date, ms(green)))}
+
+{pstd}
+To add a legend to the above graph add the following command, note the third graph is actually the overlapping range area and is dropped 
+from the order
+
+{phang}
+{stata drarea high low high2 low2 date in 1/20, twoway((rspike high low date)(scatter high2 date, ms(green))) legend(on order(1 2 4 5))}
 
 {title:Author}
 

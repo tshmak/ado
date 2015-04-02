@@ -1,4 +1,4 @@
-* 00000043
+* 00000052
 *! version 1.0.0
 * Do not erase or edit this file
 * It is used by Stata to track the ado and help
@@ -273,67 +273,6 @@ f m\metannt.dlg
 f i\i2ci.ado
 f m\metan_examples.ado
 e
-S http://fmwww.bc.edu/repec/bocode/d
-N drarea.pkg
-D  3 Jun 2013
-U 25
-d 'DRAREA': module to overlap two range area plots
-d 
-d  The command drarea allows two range area plots to be overlapped
-d in an intelligent way. At the moment Stata does not allow a level
-d of transparency in the graphics engine and adopts a "last drawn
-d first seen" rule. This command actually averages the colours in
-d the overlapping area to give the illusion of transparency.
-d 
-d KW: twoway rarea
-d KW: overlaying
-d KW: transparency
-d KW: double range plot.
-d 
-d Requires: Stata version 9.2
-d 
-d Distribution-Date: 20130601
-d 
-d Author: Adrian Mander
-d Support: email Adrian.Mander@@mrc-hnr.cam.ac.uk
-d 
-f d\drarea.ado
-f d\drarea.sthlp
-e
-S http://fmwww.bc.edu/repec/bocode/l
-N lgraph.pkg
-D  3 Jun 2013
-U 26
-d 'LGRAPH': module to draw line graphs with optional error bars
-d 
-d  lgraph is a tool for drawing line graphs with optional error
-d bars optionally  stratified by one or two variables. lgraph
-d collapses yvar by xvar and optionally groupvar1 and groupvar2. It
-d then plots a twoway_connected graph of yvar against xvar,
-d stratified by {it:groupvar1} and  groupvar2 with optional error
-d bars. The advantage of using lgraph is that the data is
-d automatically preserved.  Moreover, lgraph automatically takes
-d care of the coloring of the lines and the error bars, and
-d produces meaningful legends. It is most useful for graphical
-d exploration of longitudinal and/or multilevel data.
-d 
-d KW: line graph
-d KW: error bars
-d KW: multilevel
-d KW: hierarchical
-d KW: longitudinal
-d KW: panel data
-d 
-d Requires: Stata version 9
-d 
-d Distribution-Date: 20130601
-d 
-d Author: Timothy Mak, King's College London
-d Support: email Timothy.Mak@@iop.kcl.ac.uk
-d 
-f l\lgraph.ado
-f l\lgraph.hlp
-e
 S http://fmwww.bc.edu/repec/bocode/e
 N egenmore.pkg
 D  6 Mar 2014
@@ -503,65 +442,6 @@ f r\rtmci.sthlp
 f r\rtmcii.ado
 f r\rtmcii.sthlp
 f r\rtm_calc.ado
-e
-S http://fmwww.bc.edu/repec/bocode/e
-N estout.pkg
-D 27 Dec 2013
-U 4
-d 'ESTOUT': module to make regression tables
-d 
-d  estout produces a table of regression results from one or
-d several models for use with spreadsheets, LaTeX, HTML, or a
-d word-processor table. eststo stores a quick copy of the active
-d estimation results for later tabulation. esttab is a wrapper for
-d estout. It displays a pretty looking publication-style regression
-d table without much typing. estadd adds additional results to the
-d e()-returns for one or several models previously fitted and
-d stored. This package subsumes the previously circulated esto,
-d esta, estadd,  and estadd_plus. An earlier version of estout is
-d available  as estout1.
-d 
-d KW: estimates
-d KW: LaTeX
-d KW: HTML
-d KW: word processor
-d KW: output
-d 
-d Requires: Stata version 8.2
-d 
-d Distribution-Date: 20091012
-d 
-d Author: Ben Jann, University of Bern
-d Support: email jann@@soz.unibe.ch
-d 
-f _\_eststo.ado
-f _\_eststo.hlp
-f e\estadd.ado
-f e\estadd.hlp
-f e\estout.ado
-f e\estout.hlp
-f e\eststo.ado
-f e\eststo.hlp
-f e\estpost.ado
-f e\estpost.hlp
-f e\esttab.ado
-f e\esttab.hlp
-e
-S http://www.stata.com/users/ymarchenko
-N mibeta.pkg
-D 16 Jan 2014
-U 5
-d mibeta: Standardized coefficients for multiply-imputed data
-d This command reports standardized coefficients and R-squared measures
-d for multiply-imputed data analyzed by using linear regression.
-d 
-d Keywords: multiple imputation, mi estimate, beta weights
-d 
-d Program by Yulia Marchenko, StataCorp <ymarchenko@@stata.com>.
-d 
-d Distribution-Date: 11jul2011
-f m\mibeta.ado
-f m\mibeta.sthlp
 e
 S http://fmwww.bc.edu/repec/bocode/c
 N ciplot.pkg
@@ -784,79 +664,6 @@ f a\apcfit.sthlp
 f p\poprisktime.ado
 f p\poprisktime.sthlp
 e
-S http://fmwww.bc.edu/repec/bocode/r
-N rcsgen.pkg
-D 12 Mar 2014
-U 32
-d 'RCSGEN': module to generate restricted cubic splines and their derivatives
-d 
-d  rcsgen generates basis functions for restricted cubic splines
-d and (optionally) their derivatives.  Restricted cubic spline
-d functions assume linearity beyond the two boundary knots. It is
-d possible to  specify knots on the original scale, as default
-d percentiles or user specified percentiles.  Orthogonalization can
-d be peformed using Gram-Schmidt orthogonalization. When
-d orthogonalizing a matrix  is returned, which can be useful for
-d regenerating the orthogonalized spline variables for out of
-d sample predictions.
-d 
-d KW: restricted cubic splines
-d KW: basis functions
-d KW: orthogonalization
-d 
-d Requires: Stata version 10
-d 
-d Distribution-Date: 20131016
-d 
-d Author: Paul Lambert, University of Leicester
-d Support: email paul.lambert@@le.ac.uk
-d 
-f r\rcsgen.ado
-f r\rcsgen.sthlp
-f r\rcsgen_example.ado
-e
-S http://fmwww.bc.edu/RePEc/bocode/p
-N parallel.pkg
-D 14 Mar 2014
-U 33
-d 'PARALLEL': module for Parallel Computing
-d 
-d   Inspired in the R library "snow" and to be used in multicore
-d CPUs, parallel implements parallel computing methods through
-d OS's shell scripting (using Stata in batch mode) to accelerate
-d computations. By starting a determined number of new Stata
-d instances (child processes), this module allows the user to
-d implement parallel computing methods without the need of having
-d StataMP installed. Common tasks include vectorized operations,
-d reshaping big data, running simulations (monte carlo experiments)
-d or bootstrapping estimations. Depending on the number of cores of
-d the CPU, parallel can reach linear speed ups significantly
-d reducing computing wall-clock time. Finally parallel is, to the
-d author's knowledge, the first user contributed Stata module to
-d implement parallel computing.
-d 
-d KW: parallel computing
-d KW: timming
-d KW: high performance computing
-d KW: HPC
-d KW: big data
-d KW: simulations
-d KW: bootstrapping
-d KW: monte carlo
-d KW: multiple imputations
-d 
-d Requires: Stata version 10
-d 
-d Distribution-Date: 20131025
-d 
-d Author: George Vega Yon , Superintendencia de Pensiones, Chile
-d Support: email gvega@@spensiones.cl
-d 
-f p\parallel.ado
-f p\parallel.sthlp
-f p\parallel_source.sthlp
-f l\lparallel.mlib
-e
 S http://www.homepages.ucl.ac.uk/~ucakjpr/stata
 N xpredict.pkg
 D 14 Mar 2014
@@ -893,39 +700,6 @@ d Support: email gvega@@spensiones.cl
 d 
 f n\normalizepath.ado
 f n\normalizepath.sthlp
-e
-S http://radyakin.org/transfer/savespss/beta
-N savespss.pkg
-D 24 Mar 2014
-U 36
-d 'SAVESPSS': module to export Stata data to SPSS (*.sav) data files
-d 
-d -savespss- allows users of Stata 10-13 to save datasets
-d in SPSS system binary datafile format and supports a wide
-d range of data decoration elements: variable and value
-d labels, data characteristics, extended missing values, etc.
-d 
-d No additional software (converters or SPSS system itself)
-d are required.
-d 
-d KW: SPSS
-d KW: export
-d KW: convert
-d KW: data transfer
-d 
-d Requires: Stata version 10.0 or newer, any platform
-d 
-d Distribution-Date: 20140128
-d 
-d Author: Sergiy Radyakin, PhD, Economist,
-d         Development Economics Research Group, World Bank
-d Support: email sradyakin@@worldbank.org
-d          web   http://radyakin.org/transfer/savespss/savespss.htm
-d 
-f s\savespss.ado
-f s\savespss.dlg
-f s\savespss.hlp
-f l\lsavespss.mlib
 e
 S http://fmwww.bc.edu/repec/bocode/m
 N mimrgns.pkg
@@ -1024,4 +798,285 @@ d Support:  goldst@@harvarda.bitnet
 d After installation, see help ^phi^.
 f p\phi.ado
 f p\phi.hlp
+e
+S http://fmwww.bc.edu/RePEc/bocode/u
+N use13.pkg
+D 12 May 2014
+U 44
+d 'USE13': module to import Stata 13 (*.dta) data into older versions of Stata
+d 
+d  use13 allows users of Stata 10-12 to load datasets created with
+d Stata 13. No additional software (converters) are required.
+d 
+d KW: Stata13
+d KW: import
+d KW: compatibility
+d KW: data transfer
+d 
+d Requires: Stata version 10
+d 
+d Distribution-Date: 20130713
+d 
+d Author: Sergiy Radyakin, Development Economics Research Group, World Bank
+d Support: email sradyakin@@worldbank.org
+d 
+f u\use13.ado
+f u\use13.sthlp
+f l\luse13.mlib
+e
+S http://fmwww.bc.edu/repec/bocode/d
+N drarea.pkg
+D  5 Jan 2015
+U 45
+d 'DRAREA': module to overlap two range area plots
+d 
+d  The command drarea allows two range area plots to be overlapped
+d in an intelligent way. At the moment Stata does not allow a level
+d of transparency in the graphics engine and adopts a "last drawn
+d first seen" rule. This command actually averages the colours in
+d the overlapping area to give the illusion of transparency.
+d 
+d KW: twoway rarea
+d KW: overlaying
+d KW: transparency
+d KW: double range plot.
+d 
+d Requires: Stata version 9.2
+d 
+d Distribution-Date: 20141029
+d 
+d Author: Adrian Mander
+d Support: email Adrian.Mander@@mrc-hnr.cam.ac.uk
+d 
+f d\drarea.ado
+f d\drarea.sthlp
+e
+S http://fmwww.bc.edu/repec/bocode/l
+N lgraph.pkg
+D  5 Jan 2015
+U 46
+d 'LGRAPH': module to draw line graphs with optional error bars
+d 
+d  lgraph is a tool for drawing line graphs with optional error
+d bars optionally  stratified by one or two variables. lgraph
+d collapses yvar by xvar and optionally groupvar1 and groupvar2. It
+d then plots a twoway_connected graph of yvar against xvar,
+d stratified by groupvar1 and  groupvar2 with optional error bars.
+d The advantage of using lgraph is that the data is automatically
+d preserved.  Moreover, lgraph automatically takes care of the
+d coloring of the lines and the error bars, and produces meaningful
+d legends. It is most useful for graphical exploration of
+d longitudinal and/or multilevel data.
+d 
+d KW: line graph
+d KW: error bars
+d KW: multilevel
+d KW: hierarchical
+d KW: longitudinal
+d KW: panel data
+d 
+d Requires: Stata version 9
+d 
+d Distribution-Date: 20140925
+d 
+d Author: Timothy Mak, University of Hong Kong
+d Support: email tshmak@@hku.hk
+d 
+f l\lgraph.ado
+f l\lgraph.hlp
+e
+S http://fmwww.bc.edu/repec/bocode/e
+N estout.pkg
+D  5 Jan 2015
+U 47
+d 'ESTOUT': module to make regression tables
+d 
+d  estout produces a table of regression results from one or
+d several models for use with spreadsheets, LaTeX, HTML, or a
+d word-processor table. eststo stores a quick copy of the active
+d estimation results for later tabulation. esttab is a wrapper for
+d estout. It displays a pretty looking publication-style regression
+d table without much typing. estadd adds additional results to the
+d e()-returns for one or several models previously fitted and
+d stored. This package subsumes the previously circulated esto,
+d esta, estadd,  and estadd_plus. An earlier version of estout is
+d available  as estout1.
+d 
+d KW: estimates
+d KW: LaTeX
+d KW: HTML
+d KW: word processor
+d KW: output
+d 
+d Requires: Stata version 8.2
+d 
+d Distribution-Date: 20140604
+d 
+d Author: Ben Jann, University of Bern
+d Support: email jann@@soz.unibe.ch
+d 
+f _\_eststo.ado
+f _\_eststo.hlp
+f e\estadd.ado
+f e\estadd.hlp
+f e\estout.ado
+f e\estout.hlp
+f e\eststo.ado
+f e\eststo.hlp
+f e\estpost.ado
+f e\estpost.hlp
+f e\esttab.ado
+f e\esttab.hlp
+e
+S http://www.stata.com/users/ymarchenko
+N mibeta.pkg
+D  5 Jan 2015
+U 48
+d mibeta: Standardized coefficients for multiply-imputed data
+d This command reports standardized coefficients and R-squared measures
+d for multiply-imputed data analyzed by using linear regression.
+d 
+d Keywords: multiple imputation, mi estimate, beta weights
+d 
+d Program by Yulia Marchenko, StataCorp <ymarchenko@@stata.com>.
+d 
+d Distribution-Date: 19jun2014
+f m\mibeta.ado
+f m\mibeta.sthlp
+e
+S http://fmwww.bc.edu/repec/bocode/r
+N rcsgen.pkg
+D  5 Jan 2015
+U 49
+d 'RCSGEN': module to generate restricted cubic splines and their derivatives
+d 
+d  rcsgen generates basis functions for restricted cubic splines
+d and (optionally) their derivatives.  Restricted cubic spline
+d functions assume linearity beyond the two boundary knots. It is
+d possible to  specify knots on the original scale, as default
+d percentiles or user specified percentiles.  Orthogonalization can
+d be peformed using Gram-Schmidt orthogonalization. When
+d orthogonalizing a matrix  is returned, which can be useful for
+d regenerating the orthogonalized spline variables for out of
+d sample predictions.
+d 
+d KW: restricted cubic splines
+d KW: basis functions
+d KW: orthogonalization
+d 
+d Requires: Stata version 10
+d 
+d Distribution-Date: 20140815
+d 
+d Author: Paul Lambert, University of Leicester
+d Support: email paul.lambert@@le.ac.uk
+d 
+f r\rcsgen.ado
+f r\rcsgen.sthlp
+f r\rcsgen_example.ado
+e
+S http://fmwww.bc.edu/repec/bocode/p
+N parallel.pkg
+D  5 Jan 2015
+U 50
+d 'PARALLEL': module for Parallel Computing
+d 
+d   Inspired in the R library "snow" and to be used in multicore
+d CPUs, parallel implements parallel computing methods through
+d OS's shell scripting (using Stata in batch mode) to accelerate
+d computations. By starting a determined number of new Stata
+d instances (child processes), this module allows the user to
+d implement parallel computing methods without the need of having
+d StataMP installed. Common tasks include vectorized operations,
+d reshaping big data, running simulations (monte carlo experiments)
+d or bootstrapping estimations. Depending on the number of cores of
+d the CPU, parallel can reach linear speed ups significantly
+d reducing computing wall-clock time. Finally parallel is, to the
+d author's knowledge, the first user contributed Stata module to
+d implement parallel computing.
+d 
+d KW: parallel computing
+d KW: timming
+d KW: high performance computing
+d KW: HPC
+d KW: big data
+d KW: simulations
+d KW: bootstrapping
+d KW: monte carlo
+d KW: multiple imputations
+d 
+d Requires: Stata version 11
+d 
+d Distribution-Date: 20140620
+d 
+d Author: George Vega Yon , Superintendencia de Pensiones, Chile
+d Support: email gvega@@spensiones.cl
+d 
+f p\parallel.ado
+f p\parallel_append.ado
+f p\parallel_bs.ado
+f p\parallel_sim.ado
+f p\parallel.sthlp
+f p\parallel_source.sthlp
+f l\lparallel.mlib
+e
+S http://radyakin.org/transfer/savespss/beta
+N savespss.pkg
+D  5 Jan 2015
+U 51
+d 'SAVESPSS': module to export Stata data to SPSS (*.sav) data files
+d -savespss- has moved to SSC. Install with: findit savespss
+d if you need an older version or have a question, let me know.
+d Sergiy Radyakin 11:43 AM 11/22/2014
+d 
+d -savespss- allows users of Stata 10-13 to save datasets
+d in SPSS system binary datafile format and supports a wide
+d range of data decoration elements: variable and value
+d labels, data characteristics, extended missing values, etc.
+d 
+d No additional software (converters or SPSS system itself)
+d are required.
+d 
+d KW: SPSS
+d KW: export
+d KW: convert
+d KW: data transfer
+d 
+d Requires: Stata version 10.0 or newer, any platform
+d 
+d Distribution-Date: 20140709
+d 
+d Author: Sergiy Radyakin, PhD, Economist,
+d         Development Economics Research Group, World Bank
+d Support: email sradyakin@@worldbank.org
+d          web   http://radyakin.org/transfer/savespss/savespss.htm
+d 
+f s\savespss.ado
+e
+S http://fmwww.bc.edu/repec/bocode/m
+N mimrgns.pkg
+D  5 Jan 2015
+U 52
+d 'MIMRGNS': module to run margins after mi estimate
+d 
+d  mimrgns runs margins after mi estimate and leaves results for
+d marginsplot  (Stata 12 or higher). mimrgns generalizes the
+d approach suggest by the UCLA Statistical Consulting Group. It
+d runs whichever estimation command was specified with the last
+d call to mi estimate together with margins on the imputed datasets
+d combining the results.
+d 
+d KW: marginal imputation
+d KW: margins
+d KW: marginsplot
+d 
+d Requires: Stata version 11.2
+d 
+d Distribution-Date: 20141011
+d 
+d Author: Daniel Klein, Universität Kassel
+d Support: email daniel.klein@@uni-kassel.de
+d 
+f m\mimrgns.ado
+f m\mimrgns.sthlp
 e

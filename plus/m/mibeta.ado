@@ -1,4 +1,5 @@
-*! version 1.0.0  07jan2010
+*! version 1.0.2  19jun2014
+// see the end of the program for version history
 program mibeta, eclass
 	version 11
 	syntax [anything(everything name=rhs)] [aw fw iw pw]	  ///
@@ -62,6 +63,13 @@ program mibeta, eclass
 	}
 	_estimates unhold `esthold'
 	// compute and display descriptive stats over imputations
+	tempname b_std rsq adjrsq b_std_stats rsq_stats adjrsq_stats
+	local coleq : coleq e(b_mi)
+	local colnames : colnames e(b_mi)
+	mat `b_std'= J(1,`p'+1,.)
+	mat coleq `b_std' = `coleq'
+	mat colnames `b_std' = `colnames'
+	mat `b_std' = `b_std'[1,1..`p']
 	di
 	di as txt "Standardized coefficients and R-squared"
 	di as txt "Summary statistics over `M' imputations"
@@ -82,29 +90,49 @@ program mibeta, eclass
 			local first first
 		}
 		if (`"`r(note)'"'=="(base)") {
+			mat `b_std_stats' = nullmat(`b_std_stats'), J(5,1,.)
 			continue
 		}
 		if (`"`r(note)'"'!="") {
 			_ms_display, el(`j') matrix(e(b_mi)) `first'
 			di as res `"`r(note)'"'
 			local first
+			mat `b_std_stats' = nullmat(`b_std_stats'), J(5,1,.)
 		}
 		else {
 			_ms_display, el(`j') matrix(e(b_mi)) `first'
 			_di_stats beta`j', `original'
+			mat `b_std'[1,`j'] = r(mean_mi)
+			mat `b_std_stats' = nullmat(`b_std_stats'), r(stats)'
 			local first
 		}
 	}
+	mat `b_std_stats' = nullmat(`b_std_stats'), J(5,1,.)
+	mat coleq `b_std_stats' = `coleq'
+	mat colnames `b_std_stats' = `colnames'
+	mat rownames `b_std_stats' = min p25 p50 p75 max
+	mat `b_std_stats' = `b_std_stats'[1..5,1..`p']
 	di as txt "{hline 13}{c +}{hline 64}"
 	di as txt _col(5) "R-square {c |}" _c
 	_di_stats r2_1, `original' sqrt
+	scalar `rsq' = r(mean_mi)
+	mat `rsq_stats' = r(stats)
 	di as txt _col(1) "Adj R-square {c |}" _c
 	_di_stats r2_2, `original' sqrt
+	scalar `adjrsq' = r(mean_mi)
+	mat `adjrsq_stats' = r(stats)
 	di as txt "{hline 13}{c BT}{hline 64}"
 	if ("`original'"=="") {
 		di as txt "* based on Fisher's z transformation"
 	}
 	restore
+	//store additional results to e()
+	eret scalar r2_mi     = `rsq'
+	eret scalar r2_adj_mi = `adjrsq'
+	eret matrix b_std_mi  = `b_std'
+	eret matrix b_std_stats_mi  = `b_std_stats'
+	eret matrix r2_stats_mi  = `rsq_stats'
+	eret matrix r2_adj_stats_mi  = `adjrsq_stats'
 end
 
 program _chk_saving
@@ -115,7 +143,7 @@ program _chk_saving
 	}
 end
 
-program _di_stats
+program _di_stats, rclass
 	syntax varname(numeric) [, original SQRT ]
 	local var `varlist'
 
@@ -144,4 +172,16 @@ program _di_stats
 		  "  " %9.0g r(p50)	///
 		  "  " %9.0g r(p75)	///
 		  "  " %8.3g r(max)
+	tempname stats
+	mat `stats' = (r(min), r(p25), r(p50), r(p75), r(max))
+	return scalar mean_mi = `m'
+	return matrix stats = `stats'
 end
+/*
+Version history:
+  *! version 1.0.2  19jun2014 -- fixed a temporary name not found bug (r(111))
+  *! version 1.0.1  27may2014 -- MI summaries of standardized coefficients
+				 and R-squared measures are now stored in e()
+  *! version 1.0.0  07jan2010 -- created
+
+*/

@@ -1,5 +1,5 @@
 {smcl}
-{* *! version 1.0.1  11jul2011}
+{* *! version 1.0.2  27may2014}
 {cmd:help mibeta}
 {hline}
 
@@ -92,14 +92,19 @@ distribution over the imputed datasets to obtain more appropriate estimates.
 {phang2}{cmd:. mibeta mpg weight length i.rep78, vce(robust)}{p_end}
 
 
-{title:Saved results}
+{title:Stored results}
 
 {pstd}
 {cmd:mibeta} is a wrapper for {cmd:mi estimate:} {cmd:regress} which also
 computes summary statistics over imputed datasets for standardized
-coefficients and R-squared mesures.  {cmd:mibeta} is implemented as an ado
-file.  The results saved by {cmd:mi estimate:} {cmd:regress} are saved in
-{cmd:e()}.
+coefficients and R-squared measures.  {cmd:mibeta} is implemented as an ado
+file.  The results stored by {cmd:mi estimate:} {cmd:regress} are stored in
+{cmd:e()}.  In addition, {cmd:mibeta} stores mean estimates of standardized
+coefficients in {cmd:e(b_std_mi)}, of R-squared in {cmd:e(r2_mi)}, and of
+adjusted R-squared in {cmd:e(r2_adj_mi)}.  Other summary statistics such as
+minimum, maximum, and quantiles for standardized coefficients and R-squared
+measures computed over imputed datasets are stored in respective matrices
+{cmd:e(b_std_stats_mi)}, {cmd:e(r2_stats_mi)}, and {cmd:e(r2_adj_stats_mi)}.
 
 
 {title:References}

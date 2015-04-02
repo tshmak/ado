@@ -1,6 +1,6 @@
-*! version 0.13.10.22  22oct2013
+*! version 1.14.6.17  17jun2014
 *! PARALLEL: Stata module for parallel computing
-*! by George G. Vega (g.vegayon at gmail)
+*! by George G. Vega (gvegayon at caltech.edu)
 /*
 ////////////////////////////////////////////////////////////////////////////////
 CHANGE LOG
@@ -37,10 +37,23 @@ program def parallel
     version 10.0
 
 	// Checks wether if is parallel prefix or not
-	if  (regexm(`"`0'"', "^(do|clean|setclusters|break)")) { /* If not prefix */
+	if  (regexm(`"`0'"', "^(do|clean|setclusters|break|version|append|printlog|viewlog)")) {
+	/* If not prefix */
 		parallel_`0'
-	}
-	else if (regexm(`"`0'"',"^([,].*[:])")) {                /* if prefix */
+	} 
+	else if (regexm(`"`0'"', "^(bs|sim)[,]?[\s ]?")) {
+	/* Prefix bootstrap or simulate */
+		local cmd = regexs(1)
+		local 0   = regexr(`"`0'"', "^(bs|sim)", "")
+		gettoken x 0 : 0, parse(":")
+		local 0 = regexr(`"`0'"', "^[:]", "")
+		gettoken x options : x, parse(",") bind
+
+		gettoken 0 argopt : 0, parse(",") bind
+		parallel_`cmd' `0', argopt(`argopt') `options'
+	} 
+	else if (regexm(`"`0'"',"^([,]?.*[:])")) {              
+	/* if prefix */
 		gettoken x 0 : 0, parse(":") 
 		local 0 = regexr(`"`0'"', "^[:]", "")
 		// Gets the options (if these exists) of parallel
@@ -57,10 +70,79 @@ program def parallel
 	}
 end
 
+/* Returns the version of parallel */
+program def parallel_version, rclass
+	vers 10.0
+	di as result "parallel" as text " Stata module for parallel computing"
+	di as result "vers" as text " 1.14.6.17 (17jun2014)"
+	di as result "auth" as text " George G. Vega (gvegayon at caltech.edu)"
+	
+	return local pll_vers = "1.14.6.13"
+end
+
+/* Take a look to logfiles */
+program def parallel_printlog
+	vers 10.0
+	syntax [anything(name=pll_instance)] , [Event(string)] 
+	parallel_checklog `pll_instance', e(`event') action(print)
+end
+
+program def parallel_viewlog
+	vers 10.0
+	syntax [anything(name=pll_instance)] , [Event(string)] 
+	parallel_checklog `pll_instance', e(`event') action(view)
+end
+
+program def parallel_checklog
+	vers 10.0
+	syntax [anything(name=pll_instance)] , [Event(string)] action(string)
+
+	if ("`event'"=="") local event = "$LAST_PLL_ID"
+	
+	if ("`event'"!=".") {
+		/* By default uses 1 */
+		if ("`pll_instance'" == "") local pll_instance 1
+
+		local pll_instance : di %04.0f `pll_instance'
+
+		/* Does de file exists */
+		local logname = "__pll`event'_do`pll_instance'.log"
+
+		if (c(os) == "Windows") local logname = "`c(tmpdir)'`logname'"
+		else local logname = "`c(tmpdir)'/`logname'"
+
+		/* If the logfile does not exists, do nothing*/
+		cap confirm file "`logname'"
+		if (_rc) {
+			di as result "No logfile for instance -`pll_instance'- of parallel process -`event'- found"
+			exit
+		}
+
+		/* Showing the log in screen */
+		if ("`action'"=="print") {
+			di as result "{hline 80}"
+			di as result %~80s "beginning of file -`logname'-"
+			di as result "{hline 80}"
+			type `"`logname'"'
+			di as result "{hline 80}"
+			di as result %~80s "end of file -`logname'-"
+			di as result "{hline 80}"
+		}
+		else view `"`logname'"'
+	}
+	else {
+		di as error "It seems that you haven't use -parallel- yet."
+		exit 601
+	}
+
+end
+
+
 ////////////////////////////////////////////////////////////////////////////////
 // Splits the dataset into clusters
 cap program drop parallel_spliter
 program def parallel_spliter
+	vers 10.0
 	syntax [namelist(name=xtstructure)] [,parallelid(string) sorting(integer 0) force(integer 0) keepusing(varlist)]
 	//args xtstructure parallelid Sorting Force
 	
@@ -111,8 +193,11 @@ end
 
 ////////////////////////////////////////////////////////////////////////////////
 // MAIN PROGRAM
-cap program drop parallel_do
+*cap program drop parallel_do
 program def parallel_do, rclass
+
+	vers 10.0
+
 	#delimit ;
 	syntax anything(name=dofile equalok everything) 
 		[, by(string) 
@@ -120,7 +205,7 @@ program def parallel_do, rclass
 		KEEPLast 
 		prefix 
 		Force 
-		Programs 
+		programs(namelist)
 		Mata 
 		NOGlobals 
 		KEEPTiming 
@@ -131,6 +216,7 @@ program def parallel_do, rclass
 		PRocessors(integer 0)
 		argopt(string)
 		KEEPUsing(string)
+		SETparallelid(string)
 		];
 	#delimit cr
 	
@@ -140,9 +226,12 @@ program def parallel_do, rclass
 	}
 	
 	// Initial checks
-	foreach opt in macrolist keep keeplast prefix force programs mata noglobals keeptiming nodata {
+	foreach opt in macrolist keep keeplast prefix force mata noglobals keeptiming nodata {
 		local `opt' = length("``opt''") > 0
 	}
+
+	/* Randtype */
+	if ("`randtype'" == "") local randtype = "datetime"
 	
 	/* If no data parsing has to be done (because of no data!) */
 	if (!(c(N)*c(k))) local nodata 1
@@ -164,11 +253,12 @@ program def parallel_do, rclass
 	if (!`prefix') {
 	
 		/* First checks if the file exists */
-		mata:normalizepath(`"`dofile'"',1)
+		mata: parallel_normalizepath(`"`dofile'"',1)
 		local pll_dir = "`filedir'"
 		local dofile = "`filename'"
 	}
-	else local pll_dir = c(pwd)
+	else local pll_dir = c(pwd)+"/"
+		
 	
 	local initialdir = c(pwd)
 	qui cd "`pll_dir'"
@@ -179,15 +269,16 @@ program def parallel_do, rclass
 	}
 	else local sorting = 0
 	
-	// Creates a unique ID for the process
-	mata: st_local("parallelid", parallel_randomid(10, "`randtype'", 1, 1, 1))
-	
-	/* Creates a blocking file (in order to avoid -parallel clean- remove the
-	files in use */
-	mata: parallel_sandbox(0, "`parallelid'")
-		
+	/* Creates a unique ID for the process and secures it */
+	if ("`setparallelid'"=="") mata: parallel_sandbox(5)
+	else local parallelid = "`setparallelid'"
+
+	global LAST_PLL_ID = "`parallelid'"
+	global LAST_PLL_N = $PLL_CLUSTERS
+	global LAST_PLL_DIR = "`pll_dir'"		
+
 	/* Generates database clusters */
-	if (!`nodata') parallel_spliter `by' , parallelid(`parallelid') sorting(`sorting') force(`force')
+	if (!`nodata') parallel_spliter `by' , parallelid(`parallelid') sorting(`sorting') force(`force') keepusing(`keepusing')
 	
 	/* Starts building the files */
 	quietly {
@@ -204,7 +295,7 @@ program def parallel_do, rclass
 	}
 	
 	/* Writing the dofile */
-	mata: st_local("errornum", strofreal(parallel_write_do(strtrim(`"`dofile' `argopt'"'), "`parallelid'", $PLL_CLUSTERS, `prefix', `matasave', !`noglobals', "`seeds'", "`randtype'", `nodata', "`pll_dir'", `programs', `processors')))
+	mata: st_local("errornum", strofreal(parallel_write_do(strtrim(`"`dofile' `argopt'"'), "`parallelid'", $PLL_CLUSTERS, `prefix', `matasave', !`noglobals', "`seeds'", "`randtype'", `nodata', "`pll_dir'", "`programs'", `processors')))
 	
 	/* Checking if every thing is ok */
 	if (`errornum') {
@@ -236,9 +327,7 @@ program def parallel_do, rclass
 	if (`nerrors' & !`nodata') {
 		qui use __pll`parallelid'_dataset, clear
 		global S_FN = "`sfn'"
-		
-		/* Removes the sandbox file (unprotect the files) */
-		mata: parallel_sandbox(2, "`parallelid'")
+		cap drop _`parallelid'cut	
 	}
 	
 	cap timer list
@@ -254,13 +343,14 @@ program def parallel_do, rclass
 		// Restores original S_FN (file name) value
 		global S_FN = "`sfn'"
 	
-		/* Removes the sandbox file (unprotect the files) */
-		mata: parallel_sandbox(2, "`parallelid'")
-	
 		cap drop _`parallelid'cut
 	}
 
-	if (!`keep' & !`keeplast') parallel_clean, e("`parallelid'")
+	/* Removes the sandbox file (unprotect the files) */
+	if ("`setparallelid'" == "") {
+		mata: parallel_sandbox(2, "`parallelid'")
+		if (!`keep' & !`keeplast') parallel_clean, e("`parallelid'")
+	}
 	
 	timer off 97
 	cap timer list
@@ -276,14 +366,16 @@ program def parallel_do, rclass
 	return scalar pll_t_fini = `pll_t_fini'
 	return local pll_id = "`parallelid'"
 	return scalar pll_n = $PLL_CLUSTERS
+
 	
 	qui cd "`initialdir'"
 end
 
 ////////////////////////////////////////////////////////////////////////////////
 // Cleans all files generated by parallel
-cap program drop parallel_clean
+*cap program drop parallel_clean
 program def parallel_clean
+	vers 10.0
 	syntax [, Event(string) All Force]
 		
 	if (length("`event'") != 0 & length("`all'") != 0) {
@@ -291,7 +383,7 @@ program def parallel_clean
 		exit 198
 	}
 	
-	mata: parallel_clean("`event'", `=length("`all'")', `=length("`force'")')
+	mata: parallel_clean("`event'", `=length("`all'") > 0', `=length("`force'") > 0')
 end
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -299,10 +391,6 @@ end
 cap program drop parallel_setclusters
 program parallel_setclusters
 	syntax anything(name=nclusters)  [, Force Statadir(string asis)]
-	
-	// checks for normalizepath (required)
-	cap normalizepath
-	if _rc == 199 cap ssc install normalizepath
 	
 	local nclusters = real(`"`nclusters'"')
 	if (`nclusters' == .) {
@@ -323,6 +411,7 @@ end
 // Exports a copy of programs
 cap program drop program_export
 program def program_export
+	vers 10.0
 	syntax using/ [,Programlist(string) Inname(string)]
 	
 	mata: program_export("`using'", "`programlist'", "`inname'")
@@ -333,13 +422,14 @@ end
 // Appends the clusterized dataset
 cap program drop parallel_fusion
 program def parallel_fusion
+	vers 10.0
 	syntax anything(name=parallelid) , clusters(integer) [keepusing(string)]
 	
 	capture {
-		use "__pll`parallelid'_dta1.dta", clear
+		use "__pll`parallelid'_dta0001.dta", clear
 		
 		forval i = 2/`clusters' {
-			append using "__pll`parallelid'_dta`i'.dta"
+			append using `"__pll`parallelid'_dta`=string(`i',"%04.0f")'.dta"'
 		}
 		
 		/* If it just used a set of variables */
@@ -357,5 +447,6 @@ end
 // Checks whether the user pressed break inside a loop
 cap program drop parallel_break
 program def parallel_break
+	vers 10.0
 	mata: parallel_break()
 end

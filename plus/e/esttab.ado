@@ -1,4 +1,4 @@
-*! version 2.0.5  09mar2009  Ben Jann
+*! version 2.0.6  02jun2014  Ben Jann
 *! wrapper for estout
 
 program define esttab
@@ -35,6 +35,7 @@ program define esttab
     local fixed_modelwidth    `"12"'
     local fixed_abbrev        `"abbrev"'
     local fixed_substitute    `""'
+    local fixed_interaction   `"" # ""'
     local fixed_tstatlab      `"t statistics"'
     local fixed_zstatlab      `"z statistics"'
     local fixed_pvallab       `"p-values"'
@@ -66,6 +67,7 @@ program define esttab
     local smcl_modelwidth     `"`macval(fixed_modelwidth)'"'
     local smcl_abbrev         `"`macval(fixed_abbrev)'"'
     local smcl_substitute     `""'
+    local smcl_interaction    `"" # ""'
     local smcl_tstatlab       `"`macval(fixed_tstatlab)'"'
     local smcl_zstatlab       `"`macval(fixed_zstatlab)'"'
     local smcl_pvallab        `"`macval(fixed_pvallab)'"'
@@ -93,6 +95,7 @@ program define esttab
     local tab_modelwidth      `""'
     local tab_abbrev          `""'
     local tab_substitute      `""'
+    local tab_interaction     `"" # ""'
     local tab_tstatlab        `"`macval(fixed_tstatlab)'"'
     local tab_zstatlab        `"`macval(fixed_zstatlab)'"'
     local tab_pvallab         `"`macval(fixed_pvallab)'"'
@@ -121,6 +124,7 @@ program define esttab
     local csv_modelwidth      `""'
     local csv_abbrev          `""'
     local csv_substitute      `""'
+    local csv_interaction     `"" # ""'
     local csv_tstatlab        `"`macval(fixed_tstatlab)'"'
     local csv_zstatlab        `"`macval(fixed_zstatlab)'"'
     local csv_pvallab         `"`macval(fixed_pvallab)'"'
@@ -158,6 +162,7 @@ program define esttab
     local rtf_modelwidth      `"12"'
     local rtf_abbrev          `""'
     local rtf_substitute      `""'
+    local rtf_interaction     `"" # ""'
     local rtf_tstatlab        `"{\i t} statistics"'
     local rtf_zstatlab        `"{\i z} statistics"'
     local rtf_pvallab         `"{\i p}-values"'
@@ -189,6 +194,7 @@ program define esttab
     local html_modelwidth     `"12"'
     local html_abbrev         `""'
     local html_substitute     `""'
+    local html_interaction    `"" # ""'
     local html_tstatlab       `"<i>t</i> statistics"'
     local html_zstatlab       `"<i>z</i> statistics"'
     local html_pvallab        `"<i>p</i>-values"'
@@ -224,6 +230,7 @@ program define esttab
     local tex_pvallab         `"\textit{p}-values"'
     local tex_cilab           `"\`level'\% confidence intervals"'
     local tex_substitute      `"_ \_ "\_cons " \_cons"'
+    local tex_interaction     `"" $\times$ ""'
 // - booktabs
     local booktabs_open0      `""% `cdate' `ctime'" \documentclass{article} \`texpkgs' \usepackage{booktabs} \`=cond("\`longtable'"!="","\usepackage{longtable}","")' \begin{document} """'
     local booktabs_close0     `"`macval(tex_close0)'"'
@@ -255,6 +262,7 @@ program define esttab
     local booktabs_pvallab    `"`macval(tex_pvallab)'"'
     local booktabs_cilab      `"`macval(tex_cilab)'"'
     local booktabs_substitute `"`macval(tex_substitute)'"'
+    local booktabs_interaction `"`macval(tex_interaction)'"'
 
 // syntax
     syntax [anything] [using] [ , ///
@@ -675,7 +683,7 @@ program define esttab
             local starlevels `"starlevels(`macval(`mode'_starlevels)'`macval(`mode'_starlevlab)')"'
         }
     }
-    foreach opt in begin delimiter end substitute {
+    foreach opt in begin delimiter end substitute interaction {
         if `"`macval(`opt')'"'=="" & `"``mode'_`opt''"'!="" {
             local `opt' `"`opt'(``mode'_`opt'')"'
         }
@@ -898,8 +906,9 @@ program define esttab
      `macval(title)' `macval(prehead)' `macval(posthead)' `macval(prefoot)'       ///
      `macval(postfoot)' `label' `macval(varlabels)' `macval(mlabels)' `nonumbers' ///
      `numbers' `macval(collabels)' `macval(eqlabels)' `macval(mgroups)'           ///
-     `macval(note)' `macval(labcol2)' `macval(substitute)' `append'               ///
-     `notype'`type' `outfilenoteoff2' level(`level') `style' `macval(options)'
+     `macval(note)' `macval(labcol2)' `macval(substitute)' `macval(interaction)'  ///
+     `append' `notype'`type' `outfilenoteoff2' level(`level') `style'             ///
+     `macval(options)'
     if "`noisily'"!="" {
         gettoken chunk rest: cmd, parse(",")
         di as txt _asis `"`chunk'"' _c
@@ -1009,6 +1018,7 @@ program _estout_options
  ///  MSign(string) ///
  ///  NOLZ lz ///
      SUBstitute(passthru) ///
+     INTERACTion(passthru) ///
      TItle(passthru) ///
      NOLEgend LEgend ///
      PREHead(passthru) ///
@@ -1046,10 +1056,10 @@ program _estout_options
     foreach opt in ///
      cells drop noeform eform nomargin margin margin2 nodiscrete ///
      level stats starlevels stardetach varwidth modelwidth unstack ///
-     noabbrev abbrev begin delimiter incelldelimiter end substitute title nolegend ///
-     legend prehead posthead prefoot postfoot label varlabels mlabels labcol2 ///
-     nonumbers numbers collabels eqlabels mgroups append notype type style note ///
-     options {
+     noabbrev abbrev begin delimiter incelldelimiter end substitute ///
+     interaction title nolegend legend prehead posthead prefoot postfoot ///
+     label varlabels mlabels labcol2 nonumbers numbers collabels eqlabels ///
+     mgroups append notype type style note options {
         c_local `opt' `"`macval(`opt')'"'
     }
 end

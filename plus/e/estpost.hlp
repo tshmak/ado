@@ -1,5 +1,5 @@
 {smcl}
-{* 08oct2009}{...}
+{* 13sep2013}{...}
 {hi:help estpost}{right:also see: {helpb esttab}, {helpb estout}, {helpb eststo}, {helpb estadd}}
 {right: {browse "http://repec.org/bocode/e/estout"}}
 {hline}
@@ -16,7 +16,7 @@
 
 {marker commands}
     {it:command}{col 26}description
-    {hline 64}
+    {hline 66}
     {helpb estpost##summarize:{ul:su}mmarize}{col 26}{...}
 post summary statistics
     {helpb estpost##tabstat:tabstat}{col 26}{...}
@@ -40,8 +40,8 @@ post confidence intervals for means
     {col 26}{...}
     and percentiles of survival time
     {helpb estpost##margins:margins}{col 26}{...}
-post results from {cmd:margins} (Stata 11)
-    {hline 64}
+post results from {cmd:margins} (Stata 11 or newer)
+    {hline 66}
 
 
 {title:Description}
@@ -1306,7 +1306,7 @@ also copies all other matrixes, scalars, and macros from {helpb margins} into
 
 {title:Author}
 
-{p 4 4 2} Ben Jann, ETH Zurich, jannb@ethz.ch
+{p 4 4 2} Ben Jann, Institute of Sociology, University of Bern, jann@soz.unibe.ch
 
 
 {title:Also see}

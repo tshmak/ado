@@ -1,4 +1,4 @@
-*! version 2.3.1  07oct2009  Ben Jann
+*! version 2.3.3  28may2014  Ben Jann
 *  1. estadd and helpers
 *  2. estadd_local
 *  3. estadd_scalar
@@ -1092,7 +1092,7 @@ program define _estadd_listcoef_AddResToNomModl, eclass
         }
     }
     else {
-        di as err `"`e(cmd)' not supported"
+        di as err `"`e(cmd)' not supported"'
         exit 499
     }
 
@@ -1129,7 +1129,7 @@ program define _estadd_listcoef_AddResToNomModl, eclass
                 if el(`contrast',1,`l')!=`out1' continue
                 if el(`contrast',2,`l')!=`out2' continue
                 mat `temp' = `stats0'[1..., `l']
-                mat coleq `temp' = `"`outcomelab`i''-`outcomelab`j'"'
+                mat coleq `temp' = `"`outcomelab`i''-`outcomelab`j''"'
                 mat `stats' = nullmat(`stats'), `temp'
             }
         }
@@ -1431,7 +1431,7 @@ program define _estadd_prchange_AddStuffToE, eclass
 //  nobase==""  => add X, SD, Min, Max
 //  all models  => add centered, delta
     syntax , nomord(str) [ pattern(passthru) binary(passthru) continuous(passthru) ///
-        outcome(str) NOAVG avg nobase fromto prefix(str) ] //
+        outcome(str) NOAVG avg nobase fromto prefix(str) split ] //
 // prepare predval and determine value of outcome
     if `"`outcome'"'!="" {
         tempname predv
@@ -1494,8 +1494,14 @@ program define _estadd_prchange_AddStuffToE, eclass
             if `nomord'==2 {
                 _estadd_prchange_GetEqnmNomModl `theoutcome'
             }
-            _estadd_prchange_PostMat r(change`theoutcome'), prefix(`prefix') ///
-                name(dc) `pattern' `binary' `continuous' `fromto' eq(`eq')
+            if `"`split'"'!="" {
+                _estadd_prchange_PostMat r(change`theoutcome'), prefix(`prefix') ///
+                    name(dc) `pattern' `binary' `continuous' `fromto' eq(`eq')
+            }
+            else {
+                _estadd_prchange_PostMat r(change), prefix(`prefix') ///
+                    name(dc) `pattern' `binary' `continuous' `fromto' eq(`eq')
+            }
         }
     }
     if `"`base'"'=="" {
@@ -1731,7 +1737,7 @@ program define _estadd_prchange_StoreEachOutc // only for nomord models
             mat roweq `Vi' = ""
             erepost b=`bi' V=`Vi'
         }
-        `qui' _estadd_prchange_AddStuffToE, nomord(1) outcome(`i')  ///
+        `qui' _estadd_prchange_AddStuffToE, split nomord(1) outcome(`i') ///
             `base' `fromto' `pattern' `binary' `continuous' `prefix'
         `qui' di ""
         local qui qui

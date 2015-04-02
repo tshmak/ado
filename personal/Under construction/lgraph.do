@@ -2,6 +2,7 @@
 * Version 3.0.3: Corrected bug in that weights are not passed to collapse in the presence of errortype. 
 * Version 3.0.3: Corrected bug in that one needs to put in an extra || if adding options under addplot. 
 * Version 3.0.2: Corrected bug in the err(`ci') option introduced in version 3.0.0
+capture program drop lgraph
 program define lgraph, rclass
 version 9
 

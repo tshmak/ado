@@ -1,4 +1,4 @@
-*! version 1.5.4 13Oct2013
+*! version 1.5.6 11aug2014
 * Added various options + use mata for orthogonalisation
 * Based on an original program by Chris Nelson
 * Chris Nelson 24/APR/2006
@@ -10,12 +10,14 @@
 * Therese Andersson 17Jan2012, adding options for relaxing the constraints of continuous first * 
 *							  and second derivarive at the first knot (last if reversed splines)  
 * Paul Lambert 8/4/2013 - correct incorrect error message when using df(1)
+* Mark Rutherford 25/July/2014  - allow a center option & make percentiles code more efficient
+* Patrick Royston 31/7/2014 -  return macros for rcslist varlists
 
 program define rcsgen, rclass
 	version 10.0
 	syntax  [varlist(default=none)] [if] [in] ///
-		, [Gen(string) DGen(string) Knots(numlist) BKnots(numlist max=2) Orthog Percentiles(numlist ascending) RMATrix(name) ///
-			DF(int 0)  IF2(string) FW(varname)  REVerse SCAlar(string) NOSecondder NOFirstder]      
+		,	[Gen(string) DGen(string) Knots(numlist) BKnots(numlist max=2) Orthog Percentiles(numlist ascending) RMATrix(name) ///
+			DF(int 0)  IF2(string) FW(varname)  REVerse SCAlar(string) NOSecondder NOFirstder CENTer(string)]      
 
 	marksample touse
 	
@@ -74,6 +76,16 @@ program define rcsgen, rclass
 		exit 198
 	}
 	
+	if "`center'" != "" & "`reverse'" != "" {
+		display as error "The center option cannot be used when using the reverse option"
+		exit 198
+	}
+		
+	if "`nofirstder'" != "" & "`nosecondder'" != "" {
+		display as error "Only one of the nofirstder and nosecondder can be specified"
+		exit 198
+	}
+		
 	if "`gen'" == "" {
 		di in red "Must specify name for cubic splines basis"
 		exit 198
@@ -89,19 +101,28 @@ program define rcsgen, rclass
 		}
 		local knots
 
+	local percentilesm
 		foreach ptile in `percentiles' {
-			summ `varlist' if `touse' `aif', meanonly
-			if `ptile' == 0 {
-				local knots `r(min)'
-			}
-			else if `ptile' == 100 {
-				local knots `knots' `r(max)'
-			}
-			else {
-				_pctile `varlist' if `touse' `aif' `fw', p(`ptile')
-				local knots `knots' `r(r1)'
-			}
-		}
+               summ `varlist' if `touse' `aif', meanonly
+               if `ptile' == 0 {
+					local knots `r(min)'
+				}
+                else if `ptile' == 100 {
+					local knots `knots' `r(max)'
+                }
+                else {
+					local percentilesm `percentilesm' `ptile'
+                }
+		}			
+	
+	local dfp: word count `percentilesm'
+				
+	_pctile `varlist' if `touse' `aif' `fw', p(`percentilesm')
+				
+	forvalues i= 1/`dfp' {
+		local knots `knots' `r(r`i')'
+	}
+
 	}
 
 /* Find knot locations if df option is used */
@@ -129,9 +150,11 @@ program define rcsgen, rclass
 		}
 
 		local intknots
-		foreach ctile in `centilelist' {
-			_pctile `varlist' if `touse' `aif' `fw', p(`ctile')
-			local intknots `intknots' `r(r1)'
+		
+		_pctile `varlist' if `touse' `aif' `fw', p(`centilelist')
+
+		forvalues i= 1/`dfm1' {
+			local intknots `intknots' `r(r`i')'
 		}
 		if real(word("`intknots'",1))<=`lowerknot' {
 			display as err "Lowest internal knot is not greater than lower boundary knot"
@@ -145,16 +168,24 @@ program define rcsgen, rclass
 		local knots  `lowerknot' `intknots' `upperknot'
 	}
 
+
+	
 /*Derive the spline variables in the default way (not backwards)*/
 		
 	if "`reverse'" == "" & "`nosecondder'"  == "" & "`nofirstder'" == "" {
 	/* Start to derive spline variables */
+
 		if "`scalar'" == "" {
 			quietly gen double `gen'1 = `varlist' if `touse'
 		}
 		else {
 			scalar `gen'1 = `scalar'
-		}			
+		}	
+		
+		if "`center'"!= "" {
+			tempname center1
+			scalar `center1' = `center'
+		}		
 
 	/* generate first derivative if dgen option is specified */
 		if "`dgen'" != "" {
@@ -190,17 +221,24 @@ program define rcsgen, rclass
 	
 			forvalues j=2/`nparams' {
 				local lambda = (`kmax' - `k`j'')/(`kmax' - `kmin')
+		
 				if "`scalar'" == "" {
 					quietly gen double `gen'`j' = ((`varlist'-`k`j'')^3)*(`varlist'>`k`j'') - ///
 								`lambda'*((`varlist'-`kmin')^3)*(`varlist'>`kmin') - ///
-								(1-`lambda')*((`varlist'-`kmax')^3)*(`varlist'>`kmax')  if `touse'
-				}
+								(1-`lambda')*((`varlist'-`kmax')^3)*(`varlist'>`kmax')  if `touse'					
+				}	
 				else {
 					scalar `gen'`j' = ((`scalar'-`k`j'')^3)*(`scalar'>`k`j'') - ///
 								`lambda'*((`scalar'-`kmin')^3)*(`scalar'>`kmin') - ///
 								(1-`lambda')*((`scalar'-`kmax')^3)*(`scalar'>`kmax')  
-
 				}
+				
+				if "`center'"!= "" {
+						tempname center`j'
+						scalar `center`j'' = ((`center'-`k`j'')^3)*(`center'>`k`j'') - ///
+						`lambda'*((`center'-`kmin')^3)*(`center'>`kmin') - ///
+						(1-`lambda')*((`center'-`kmax')^3)*(`center'>`kmax')
+				}	
 				
 				local rcslist `rcslist' `gen'`j'
 	
@@ -221,6 +259,9 @@ program define rcsgen, rclass
 			}
 		}
 	}
+	
+
+
 
 /*Derive the spline variables in reversed order */		/*ADDED: 2010-02-02 by Therese Andersson*/
 		
@@ -304,219 +345,233 @@ program define rcsgen, rclass
 //  no second derivative
 		
 	else if "`nosecondder'" != "" & "`reverse'" == "" & "`nofirstder'" == "" {
-  				
-				/* Start to derive spline variables */
-                if "`scalar'" == "" {
-                        quietly gen double `gen'1 = `varlist' if `touse'
-                }
-                else {
-                        scalar `gen'1 = `scalar'
-                }                       
+		/* Start to derive spline variables */
+		if "`scalar'" == "" {
+			quietly gen double `gen'1 = `varlist' if `touse'
+		}
+		else {
+			scalar `gen'1 = `scalar'
+		}
+		if "`center'"!= "" {
+			tempname center1
+			scalar `center1' = `center'
+		}	
 
         /* generate first derivative if dgen option is specified */
-                if "`dgen'" != "" {
-                        if "`scalar'" == "" {
-                                quietly gen double `dgen'1 = 1 if `touse'
-                        }
-                        else {
-                                scalar `dgen'1 = 1
-                        }                       
-                }
-                local rcslist `gen'1 
-                local drcslist `dgen'1
+		if "`dgen'" != "" {
+			if "`scalar'" == "" {
+				quietly gen double `dgen'1 = 1 if `touse'
+			}
+			else {
+				scalar `dgen'1 = 1
+			}	                       
+		}
+		local rcslist `gen'1 
+		local drcslist `dgen'1
 
-                local nk : word count `knots'
-                if "`knots'" == "" {
-                        local interior  = 0
-                }
-                else {
-                        local interior  = `nk' - 2
-                }
-                local nparams = `interior' + 2
-				local npar = `interior' + 1
+		local nk : word count `knots'
+		if "`knots'" == "" {
+			local interior  = 0
+		}
+		else {
+			local interior  = `nk' - 2
+		}
+		local nparams = `interior' + 2
+		local npar = `interior' + 1
 
-                if "`knots'" != "" {
-                        local i = 1 
-                        tokenize "`knots'"
-                        while "``i''" != "" {
-                                local k`i' ``i''
-                                local i = `i' + 1
-                        }
+		if "`knots'" != "" {
+			local i = 1 
+			tokenize "`knots'"
+			while "``i''" != "" {
+				local k`i' ``i''
+				local i = `i' + 1
+			}
 
-                        local kmin = `k1'
-                        local kmax = `k`nk''
+			local kmin = `k1'
+			local kmax = `k`nk''
 
-                        forvalues j=2/`npar' {
-                                local lambda = (`kmax' - `k`j'')/(`kmax' - `kmin')
-                                if "`scalar'" == "" {
-                                        quietly gen double `gen'`j' = ((`varlist'-`k`j'')^3)*(`varlist'>`k`j'') - ///
-                                                                `lambda'*((`varlist'-`kmin')^3)*(`varlist'>`kmin') - ///
-                                                                (1-`lambda')*((`varlist'-`kmax')^3)*(`varlist'>`kmax') if `touse'
-                                }
-                                else {
-                                        scalar `gen'`j' = ((`scalar'-`k`j'')^3)*(`scalar'>`k`j'') - ///
-                                                                `lambda'*((`scalar'-`kmin')^3)*(`scalar'>`kmin') - ///
-                                                                (1-`lambda')*((`varlist'-`kmax')^3)*(`scalar'>`kmax')  
-
-                                }
-                                
-                                local rcslist `rcslist' `gen'`j'
+			forvalues j=2/`npar' {
+				local lambda = (`kmax' - `k`j'')/(`kmax' - `kmin')
+				if "`scalar'" == "" {
+					quietly gen double `gen'`j' = ((`varlist'-`k`j'')^3)*(`varlist'>`k`j'') - ///
+						`lambda'*((`varlist'-`kmin')^3)*(`varlist'>`kmin') - ///
+						(1-`lambda')*((`varlist'-`kmax')^3)*(`varlist'>`kmax') if `touse'
+				}
+				else {
+					scalar `gen'`j' = ((`scalar'-`k`j'')^3)*(`scalar'>`k`j'') - ///
+						`lambda'*((`scalar'-`kmin')^3)*(`scalar'>`kmin') - ///
+						(1-`lambda')*((`scalar'-`kmax')^3)*(`scalar'>`kmax')  
+				}
+ 
+				if "`center'"!= "" {
+					tempname center`j'
+					scalar `center`j'' = ((`center'-`k`j'')^3)*(`center'>`k`j'') - ///
+						`lambda'*((`center'-`kmin')^3)*(`center'>`kmin') - ///
+						(1-`lambda')*((`center'-`kmax')^3)*(`center'>`kmax')  
+				}
+								
+				local rcslist `rcslist' `gen'`j'
         
-        /* calculate derivatives */
-                                if "`dgen'"!="" {
-                                        if "`scalar'" == "" {
-                                                quietly gen double `dgen'`j' = (3*(`varlist'- `k`j'')^2)*(`varlist'>`k`j'') - ///
-                                                                        `lambda'*(3*(`varlist'-`kmin')^2)*(`varlist'>`kmin') - ///
-                                                                        (1-`lambda')*(3*(`varlist'-`kmax')^2)*(`varlist'>`kmax') 
-                                        }
-                                        else {
-                                                scalar `dgen'`j' = (3*(`scalar'- `k`j'')^2)*(`scalar'>`k`j'') - ///
-                                                                        `lambda'*(3*(`scalar'-`kmin')^2)*(`scalar'>`kmin') - ///
-                                                                        (1-`lambda')*(3*(`scalar'-`kmax')^2)*(`scalar'> `kmax') 
-                                        }
-                                        local drcslist `drcslist' `dgen'`j'
-                                }       
-                        }
+/* calculate derivatives */
+				if "`dgen'"!="" {
+					if "`scalar'" == "" {
+						quietly gen double `dgen'`j' = (3*(`varlist'- `k`j'')^2)*(`varlist'>`k`j'') - ///
+							`lambda'*(3*(`varlist'-`kmin')^2)*(`varlist'>`kmin') - ///
+							(1-`lambda')*(3*(`varlist'-`kmax')^2)*(`varlist'>`kmax') 
+					}
+					else {
+						scalar `dgen'`j' = (3*(`scalar'- `k`j'')^2)*(`scalar'>`k`j'') - ///
+							`lambda'*(3*(`scalar'-`kmin')^2)*(`scalar'>`kmin') - ///
+							(1-`lambda')*(3*(`scalar'-`kmax')^2)*(`scalar'> `kmax') 
+					}
+					local drcslist `drcslist' `dgen'`j'
+				}       
+			}
 				
-				/* Derive last spline variable */
-						local c=(1/(3*(`kmax' - `kmin')))						
-                        if "`scalar'" == "" {
-                                quietly gen double `gen'`nparams' = (`varlist'-`kmin')^2*(`varlist'>`kmin') - ///
-								`c'*((`varlist'-`kmin')^3)*(`varlist'>`kmin') + ///
-                                                                 `c'*((`varlist'-`kmax')^3)*(`varlist'>`kmax') if `touse'
-                        }
-                        else {
-                                scalar `gen'`nparams' = (`scalar'-`kmin')^2*(`scalar'>`kmin') - ///
-								`c'*((`scalar'-`kmin')^3)*(`scalar'>`kmin') + ///
-                                                                 `c'*((`scalar'-`kmax')^3)*(`scalar'>`kmax') 
-                        }
-                        local rcslist `rcslist' `gen'`nparams'
+/* Derive last spline variable */
+			local c=(1/(3*(`kmax' - `kmin')))						
+			if "`scalar'" == "" {
+				quietly gen double `gen'`nparams' = (`varlist'-`kmin')^2*(`varlist'>`kmin') - ///
+					`c'*((`varlist'-`kmin')^3)*(`varlist'>`kmin') + ///
+					`c'*((`varlist'-`kmax')^3)*(`varlist'>`kmax') if `touse'
+			}
+			else {
+				scalar `gen'`nparams' = (`scalar'-`kmin')^2*(`scalar'>`kmin') - ///
+					`c'*((`scalar'-`kmin')^3)*(`scalar'>`kmin') + ///
+					`c'*((`scalar'-`kmax')^3)*(`scalar'>`kmax') 
+			}
+						
+			if "`center'"!= "" {
+				tempname center`nparams'
+				scalar `center`nparams'' = (`center'-`kmin')^2*(`center'>`kmin') - ///
+					`c'*((`center'-`kmin')^3)*(`center'>`kmin') + ///
+					`c'*((`center'-`kmax')^3)*(`center'>`kmax') 
+			}						
+						
+			local rcslist `rcslist' `gen'`nparams'
 
 /* generate first derivative if dgen option is specified */
-                        if "`dgen'" != "" {
-                                if "`scalar'" == "" {
-                                        quietly gen double `dgen'`nparams' = 2*(`varlist'-`kmin')*(`varlist'>`kmin') - ///
-								 3*`c'*((`varlist'-`kmin')^2)*(`varlist'>`kmin') + ///
-                                                                 3*`c'*((`varlist'-`kmax')^2)*(`varlist'>`kmax') if `touse' 
-                                }
-                                else {
-                                        scalar `dgen'`nparams' = 2*(`scalar'-`kmin')*(`scalar'>`kmin') - ///
-								 3*`c'*((`scalar'-`kmin')^2)*(`scalar'>`kmin') + ///
-                                                                 3*`c'*((`scalar'-`kmax')^2)*(`scalar'>`kmax') 
-                                }
-                                local drcslist `drcslist' `dgen'`nparams'
-                        }
-                }
-        }
+			if "`dgen'" != "" {
+				if "`scalar'" == "" {
+					quietly gen double `dgen'`nparams' = 2*(`varlist'-`kmin')*(`varlist'>`kmin') - ///
+						3*`c'*((`varlist'-`kmin')^2)*(`varlist'>`kmin') + ///
+						3*`c'*((`varlist'-`kmax')^2)*(`varlist'>`kmax') if `touse' 
+				}
+				else {
+					scalar `dgen'`nparams' = 2*(`scalar'-`kmin')*(`scalar'>`kmin') - ///
+						3*`c'*((`scalar'-`kmin')^2)*(`scalar'>`kmin') + ///
+						3*`c'*((`scalar'-`kmax')^2)*(`scalar'>`kmax') 
+				}
+				local drcslist `drcslist' `dgen'`nparams'
+			}
+		}
+	}
  
  ****************************!!!*********************			
 		
 	else if "`nosecondder'" != "" & "`reverse'" != "" & "`nofirstder'" == ""{
                 			
-                local nk : word count `knots'
-                if "`knots'" == "" {
-                        local interior  = 0
-                }
-                else {
-                        local interior  = `nk' - 2
-                }
-                local nparams = `interior' + 2
+		local nk : word count `knots'
+		if "`knots'" == "" {
+			local interior  = 0
+		}
+		else {
+			local interior  = `nk' - 2
+		}
+		local nparams = `interior' + 2
 		local npar = `interior' + 1
 
-                if "`knots'" != "" {
-                        local i = 1 
-                        tokenize "`knots'"
-                        while "``i''" != "" {
-                                local k`i' ``i''
-                                local i = `i' + 1
-                        }
+		if "`knots'" != "" {
+			local i = 1 
+			tokenize "`knots'"
+			while "``i''" != "" {
+				local k`i' ``i''
+				local i = `i' + 1
+			}
 
-                        local kmin = `k1'
-                        local kmax = `k`nk''
+			local kmin = `k1'
+			local kmax = `k`nk''
 
-
-	/* Derive first spline variable */
-                        local c=(1/(3*(`kmax' - `kmin')))						
-                        if "`scalar'" == "" {
-                                quietly gen double `gen'1 = (`kmax'-`varlist')^2*(`kmax'>`varlist') - ///
-								`c'*((`kmax'-`varlist')^3)*(`kmax'>`varlist') + ///
-                                                                 `c'*((`kmin'-`varlist')^3)*(`kmin'>`varlist') if `touse'
-                        }
-                        else {
-                                scalar `gen'1 = (`kmax'-`scalar')^2*(`kmax'>`scalar') - ///
-								`c'*((`kmax'-`scalar')^3)*(`kmax'>`scalar') + ///
-                                                                 `c'*((`kmin'-`scalar')^3)*(`kmin'>`scalar') 
-                        }
-                        local rcslist `gen'1
+/* Derive first spline variable */
+			local c=(1/(3*(`kmax' - `kmin')))						
+			if "`scalar'" == "" {
+				quietly gen double `gen'1 = (`kmax'-`varlist')^2*(`kmax'>`varlist') - ///
+					`c'*((`kmax'-`varlist')^3)*(`kmax'>`varlist') + ///
+					`c'*((`kmin'-`varlist')^3)*(`kmin'>`varlist') if `touse'
+			}
+			else {
+				scalar `gen'1 = (`kmax'-`scalar')^2*(`kmax'>`scalar') - ///
+					`c'*((`kmax'-`scalar')^3)*(`kmax'>`scalar') + ///
+					`c'*((`kmin'-`scalar')^3)*(`kmin'>`scalar') 
+			}
+			local rcslist `gen'1
 
 /* generate first derivative if dgen option is specified */
-                        if "`dgen'" != "" {
-                                if "`scalar'" == "" {
-                                        quietly gen double `dgen'1 = -2*(`kmax'-`varlist')*(`kmax'>`varlist') - ///
-								 (-3)*`c'*((`kmax'-`varlist')^2)*(`kmax'>`varlist') + ///
-                                                                 (-3)*`c'*((`kmin'-`varlist')^2)*(`kmin'>`varlist') if `touse' 
-                                }
-                                else {
-                                        scalar `dgen'1 = -2*(`kmax'-`scalar')*(`kmax'>`scalar') - ///
-								 (-3)*`c'*((`kmax'-`scalar')^2)*(`kmax'>`scalar') + ///
-                                                                 (-3)*`c'*((`kmin'-`scalar')^2)*(`kmin'>`scalar')
-                                }
-                                local drcslist `dgen'1
-                        }
+			if "`dgen'" != "" {
+				if "`scalar'" == "" {
+					quietly gen double `dgen'1 = -2*(`kmax'-`varlist')*(`kmax'>`varlist') - ///
+						(-3)*`c'*((`kmax'-`varlist')^2)*(`kmax'>`varlist') + ///
+						(-3)*`c'*((`kmin'-`varlist')^2)*(`kmin'>`varlist') if `touse' 
+				}
+				else {
+					scalar `dgen'1 = -2*(`kmax'-`scalar')*(`kmax'>`scalar') - ///
+						(-3)*`c'*((`kmax'-`scalar')^2)*(`kmax'>`scalar') + ///
+						(-3)*`c'*((`kmin'-`scalar')^2)*(`kmin'>`scalar')
+				}
+				local drcslist `dgen'1
+			}
 
-
-                        forvalues j=2/`npar' {
-                                local h = `nk'-(`j'-1)
-                                local lambda = (`k`h''-`kmin')/(`kmax' - `kmin')
-                                if "`scalar'" == "" {
-                                        quietly gen double `gen'`j' = ((`k`h''-`varlist')^3)*(`k`h''>`varlist') - ///
-                                                                `lambda'*((`kmax'-`varlist')^3)*(`kmax'>`varlist') - ///
-                                                                (1-`lambda')*((`kmin'-`varlist')^3)*(`kmin'>`varlist') if `touse'
-                                }
-                                else {
-                                        scalar `gen'`j' = ((`k`h''-`scalar')^3)*(`k`h''>`scalar') - ///
-                                                                `lambda'*((`kmax'-`scalar')^3)*(`kmax'>`scalar') - ///
-                                                                (1-`lambda')*((`kmin'-`scalar')^3)*(`kmin'>`scalar') 
-                                }
-                                local rcslist `rcslist' `gen'`j'
+			forvalues j=2/`npar' {
+				local h = `nk'-(`j'-1)
+				local lambda = (`k`h''-`kmin')/(`kmax' - `kmin')
+				if "`scalar'" == "" {
+					quietly gen double `gen'`j' = ((`k`h''-`varlist')^3)*(`k`h''>`varlist') - ///
+						`lambda'*((`kmax'-`varlist')^3)*(`kmax'>`varlist') - ///
+						(1-`lambda')*((`kmin'-`varlist')^3)*(`kmin'>`varlist') if `touse'
+				}
+				else {
+					scalar `gen'`j' = ((`k`h''-`scalar')^3)*(`k`h''>`scalar') - ///
+						`lambda'*((`kmax'-`scalar')^3)*(`kmax'>`scalar') - ///
+						(1-`lambda')*((`kmin'-`scalar')^3)*(`kmin'>`scalar') 
+				}
+				local rcslist `rcslist' `gen'`j'
 
 /* calculate derivatives */
-                                if "`dgen'"!="" {
-                                        if "`scalar'" == "" {
-                                                quietly gen double `dgen'`j' = (-3*(`k`h''-`varlist')^2)*(`k`h''>`varlist') - ///
-                                                                        `lambda'*(-3*(`kmax'-`varlist')^2)*(`kmax'>`varlist') - ///
-                                                                        (1-`lambda')*(-3*(`kmin'-`varlist')^2)*(`kmin'>`varlist')  if `touse'
-                                        }
-                                        else {
-                                                scalar `dgen'`j' = (-3*(`k`h''-`scalar')^2)*(`k`h''>`scalar') - ///
-                                                                        `lambda'*(-3*(`kmax'-`scalar')^2)*(`kmax'>`scalar') - ///
-                                                                        (1-`lambda')*(-3*(`kmin'-`scalar')^2)*(`kmin'>` scalar') 
-
-                                        }
-                                        local drcslist `drcslist' `dgen'`j'
-                                }       
-                        }
+				if "`dgen'"!="" {
+					if "`scalar'" == "" {
+						quietly gen double `dgen'`j' = (-3*(`k`h''-`varlist')^2)*(`k`h''>`varlist') - ///
+							`lambda'*(-3*(`kmax'-`varlist')^2)*(`kmax'>`varlist') - ///
+							(1-`lambda')*(-3*(`kmin'-`varlist')^2)*(`kmin'>`varlist')  if `touse'
+					}
+					else {
+						scalar `dgen'`j' = (-3*(`k`h''-`scalar')^2)*(`k`h''>`scalar') - ///
+							`lambda'*(-3*(`kmax'-`scalar')^2)*(`kmax'>`scalar') - ///
+							(1-`lambda')*(-3*(`kmin'-`scalar')^2)*(`kmin'>` scalar') 
+					}
+					local drcslist `drcslist' `dgen'`j'
+				}       
+			}
 /* Derive last spline variable */
-                        if "`scalar'" == "" {
-                                quietly gen double `gen'`nparams' = `varlist' if `touse'
-                        }
-                        else {
-                                scalar `gen'`nparams' = `scalar' 
-                        }
-                        local rcslist `rcslist' `gen'`nparams'
+			if "`scalar'" == "" {
+				quietly gen double `gen'`nparams' = `varlist' if `touse'
+			}
+			else {
+				scalar `gen'`nparams' = `scalar' 
+			}
+			local rcslist `rcslist' `gen'`nparams'
 
 /* generate first derivative if dgen option is specified */
-                        if "`dgen'" != "" {
-                                if "`scalar'" == "" {
-                                        quietly gen double `dgen'`nparams' = 1 if `touse'
-                                }
-                                else {
-                                        scalar `dgen'`nparams' = 1 
-                                }
-                                local drcslist `drcslist' `dgen'`nparams'
-                        }
-                }
-        }
+			if "`dgen'" != "" {
+				if "`scalar'" == "" {
+					quietly gen double `dgen'`nparams' = 1 if `touse'
+				}
+				else {
+					scalar `dgen'`nparams' = 1 
+				}
+				local drcslist `drcslist' `dgen'`nparams'
+			}
+		}
+	}
  
 **************************** !!!! ************************************ 
 
@@ -525,258 +580,304 @@ program define rcsgen, rclass
 ****************************!!!*********************	
 		
 	else if "`nosecondder'" == "" & "`reverse'" == "" & "`nofirstder'" != "" {
-  				
-				/* Start to derive spline variables */
-                if "`scalar'" == "" {
-                        quietly gen double `gen'1 = `varlist' if `touse'
-                }
-                else {
-                        scalar `gen'1 = `scalar'
-                }                       
+ /* Start to derive spline variables */
+		if "`scalar'" == "" {
+			quietly gen double `gen'1 = `varlist' if `touse'
+		}
+		else {
+			scalar `gen'1 = `scalar'
+		}
+				
+		if "`center'"!= "" {
+			tempname center1
+			scalar `center1' = `center'
+		}	
 
         /* generate first derivative if dgen option is specified */
-                if "`dgen'" != "" {
-                        if "`scalar'" == "" {
-                                quietly gen double `dgen'1 = 1 if `touse'
-                        }
-                        else {
-                                scalar `dgen'1 = 1
-                        }                       
-                }
-                local rcslist `gen'1 
-                local drcslist `dgen'1
+		if "`dgen'" != "" {
+			if "`scalar'" == "" {
+				quietly gen double `dgen'1 = 1 if `touse'
+			}
+			else {
+				scalar `dgen'1 = 1
+			}                       
+		}
+		local rcslist `gen'1 
+		local drcslist `dgen'1
 
-                local nk : word count `knots'
-                if "`knots'" == "" {
-                        local interior  = 0
-                }
-                else {
-                        local interior  = `nk' - 2
-                }
-                local nparams = `interior' + 3
-				local npar = `interior' + 1
-				local par = `interior' + 2
+		local nk : word count `knots'
+		if "`knots'" == "" {
+			local interior  = 0
+		}
+		else {
+			local interior  = `nk' - 2
+		}
+		local nparams = `interior' + 3
+		local npar = `interior' + 1
+		local par = `interior' + 2
 
-                if "`knots'" != "" {
-                        local i = 1 
-                        tokenize "`knots'"
-                        while "``i''" != "" {
-                                local k`i' ``i''
-                                local i = `i' + 1
-                        }
+		if "`knots'" != "" {
+			local i = 1 
+			tokenize "`knots'"
+			while "``i''" != "" {
+				local k`i' ``i''
+				local i = `i' + 1
+			}
 
-                        local kmin = `k1'
-                        local kmax = `k`nk''
+			local kmin = `k1'
+			local kmax = `k`nk''
 
-                        forvalues j=2/`npar' {
-                                local lambda = (`kmax' - `k`j'')/(`kmax' - `kmin')
-                                if "`scalar'" == "" {
-                                        quietly gen double `gen'`j' = ((`varlist'-`k`j'')^3)*(`varlist'>`k`j'') - ///
-                                                                `lambda'*((`varlist'-`kmin')^3)*(`varlist'>`kmin') - ///
-                                                                (1-`lambda')*((`varlist'-`kmax')^3)*(`varlist'>`kmax') if `touse'
-                                }
-                                else {
-                                        scalar `gen'`j' = ((`scalar'-`k`j'')^3)*(`scalar'>`k`j'') - ///
-                                                                `lambda'*((`scalar'-`kmin')^3)*(`scalar'>`kmin') - ///
-                                                                (1-`lambda')*((`varlist'-`kmax')^3)*(`scalar'>`kmax')  
-
-                                }
+			forvalues j=2/`npar' {
+				local lambda = (`kmax' - `k`j'')/(`kmax' - `kmin')
+				if "`scalar'" == "" {
+					quietly gen double `gen'`j' = ((`varlist'-`k`j'')^3)*(`varlist'>`k`j'') - ///
+						`lambda'*((`varlist'-`kmin')^3)*(`varlist'>`kmin') - ///
+						(1-`lambda')*((`varlist'-`kmax')^3)*(`varlist'>`kmax') if `touse'
+				}
+				else {
+					scalar `gen'`j' = ((`scalar'-`k`j'')^3)*(`scalar'>`k`j'') - ///
+						`lambda'*((`scalar'-`kmin')^3)*(`scalar'>`kmin') - ///
+						(1-`lambda')*((`scalar'-`kmax')^3)*(`scalar'>`kmax')  
+				}
+								
+				if "`center'"!= "" {
+					tempname center`j'
+					scalar `center`j'' = ((`center'-`k`j'')^3)*(`center'>`k`j'') - ///
+						`lambda'*((`center'-`kmin')^3)*(`center'>`kmin') - ///
+						(1-`lambda')*((`center'-`kmax')^3)*(`center'>`kmax')  
+				}									
                                 
-                                local rcslist `rcslist' `gen'`j'
+				local rcslist `rcslist' `gen'`j'
         
-        /* calculate derivatives */
-                                if "`dgen'"!="" {
-                                        if "`scalar'" == "" {
-                                                quietly gen double `dgen'`j' = (3*(`varlist'- `k`j'')^2)*(`varlist'>`k`j'') - ///
-                                                                        `lambda'*(3*(`varlist'-`kmin')^2)*(`varlist'>`kmin') - ///
-                                                                        (1-`lambda')*(3*(`varlist'-`kmax')^2)*(`varlist'>`kmax') 
-                                        }
-                                        else {
-                                                scalar `dgen'`j' = (3*(`scalar'- `k`j'')^2)*(`scalar'>`k`j'') - ///
-                                                                        `lambda'*(3*(`scalar'-`kmin')^2)*(`scalar'>`kmin') - ///
-                                                                        (1-`lambda')*(3*(`scalar'-`kmax')^2)*(`scalar'> `kmax') 
-                                        }
-                                        local drcslist `drcslist' `dgen'`j'
-                                }       
-                        }
+/* calculate derivatives */
+				if "`dgen'"!="" {
+					if "`scalar'" == "" {
+						quietly gen double `dgen'`j' = (3*(`varlist'- `k`j'')^2)*(`varlist'>`k`j'') - ///
+							`lambda'*(3*(`varlist'-`kmin')^2)*(`varlist'>`kmin') - ///
+							(1-`lambda')*(3*(`varlist'-`kmax')^2)*(`varlist'>`kmax') 
+					}
+					else {
+						scalar `dgen'`j' = (3*(`scalar'- `k`j'')^2)*(`scalar'>`k`j'') - ///
+							`lambda'*(3*(`scalar'-`kmin')^2)*(`scalar'>`kmin') - ///
+							(1-`lambda')*(3*(`scalar'-`kmax')^2)*(`scalar'> `kmax') 
+					}
+					local drcslist `drcslist' `dgen'`j'
+				}       
+			}
 				
-		/* Derive the first extra spline variable */
-						local c=(1/(3*(`kmax' - `kmin')))						
-                        if "`scalar'" == "" {
-                                quietly gen double `gen'`par' = (`varlist'-`kmin')^2*(`varlist'>`kmin') - ///
-								`c'*((`varlist'-`kmin')^3)*(`varlist'>`kmin') + ///
-                                                                 `c'*((`varlist'-`kmax')^3)*(`varlist'>`kmax') if `touse'
-                        }
-                        else {
-                                scalar `gen'`par' = (`scalar'-`kmin')^2*(`scalar'>`kmin') - ///
-								`c'*((`scalar'-`kmin')^3)*(`scalar'>`kmin') + ///
-                                                                 `c'*((`scalar'-`kmax')^3)*(`scalar'>`kmax') 
-                        }
-                        local rcslist `rcslist' `gen'`par'
+/* Derive the first extra spline variable */
+			local c=(1/(3*(`kmax' - `kmin')))						
+			if "`scalar'" == "" {
+				quietly gen double `gen'`par' = (`varlist'-`kmin')^2*(`varlist'>`kmin') - ///
+					`c'*((`varlist'-`kmin')^3)*(`varlist'>`kmin') + ///
+					`c'*((`varlist'-`kmax')^3)*(`varlist'>`kmax') if `touse'
+			}
+			else {
+				scalar `gen'`par' = (`scalar'-`kmin')^2*(`scalar'>`kmin') - ///
+					`c'*((`scalar'-`kmin')^3)*(`scalar'>`kmin') + ///
+					`c'*((`scalar'-`kmax')^3)*(`scalar'>`kmax') 
+			}
+						
+			if "`center'"!= "" {
+				scalar center`par' = (`center'-`kmin')^2*(`center'>`kmin') - ///
+					`c'*((`center'-`kmin')^3)*(`center'>`kmin') + ///
+					`c'*((`center'-`kmax')^3)*(`center'>`kmax') 
+			}							
+						
+			local rcslist `rcslist' `gen'`par'
 
 /* generate first derivative if dgen option is specified */
-                        if "`dgen'" != "" {
-                                if "`scalar'" == "" {
-                                        quietly gen double `dgen'`par' = 2*(`varlist'-`kmin')*(`varlist'>`kmin') - ///
-								 3*`c'*((`varlist'-`kmin')^2)*(`varlist'>`kmin') + ///
-                                                                 3*`c'*((`varlist'-`kmax')^2)*(`varlist'>`kmax') if `touse' 
-                                }
-                                else {
-                                        scalar `dgen'`par' = 2*(`scalar'-`kmin')*(`scalar'>`kmin') - ///
-								 3*`c'*((`scalar'-`kmin')^2)*(`scalar'>`kmin') + ///
-                                                                 3*`c'*((`scalar'-`kmax')^2)*(`scalar'>`kmax') 
-                                }
-                                local drcslist `drcslist' `dgen'`par'
-                        }
-		/* Derive the last spline variable */
-						if "`scalar'" == "" {
-                                quietly gen double `gen'`nparams' = (`varlist'-`kmin')*(`varlist'>`kmin') if `touse'
-                        }
-                        else {
-                                scalar `gen'`nparams' = (`scalar'-`kmin')*(`scalar'>`kmin')  
-                        }
-                        local rcslist `rcslist' `gen'`nparams'
+			if "`dgen'" != "" {
+				if "`scalar'" == "" {
+					quietly gen double `dgen'`par' = 2*(`varlist'-`kmin')*(`varlist'>`kmin') - ///
+						3*`c'*((`varlist'-`kmin')^2)*(`varlist'>`kmin') + ///
+						3*`c'*((`varlist'-`kmax')^2)*(`varlist'>`kmax') if `touse' 
+				}
+				else {
+					scalar `dgen'`par' = 2*(`scalar'-`kmin')*(`scalar'>`kmin') - ///
+						3*`c'*((`scalar'-`kmin')^2)*(`scalar'>`kmin') + ///
+						3*`c'*((`scalar'-`kmax')^2)*(`scalar'>`kmax') 
+				}
+				local drcslist `drcslist' `dgen'`par'
+			}
+/* Derive the last spline variable */
+			if "`scalar'" == "" {
+				quietly gen double `gen'`nparams' = (`varlist'-`kmin')*(`varlist'>`kmin') if `touse'
+			}
+			else {
+				scalar `gen'`nparams' = (`scalar'-`kmin')*(`scalar'>`kmin')  
+			}
+			if "`center'"!= "" {
+				tempname center`nparams'
+				scalar center`nparams' = (`center'-`kmin')*(`center'>`kmin')  
+			}						
+						
+			local rcslist `rcslist' `gen'`nparams'
 
 /* generate first derivative if dgen option is specified */
-                        if "`dgen'" != "" {
-                                if "`scalar'" == "" {
-                                        quietly gen double `dgen'`nparams' = 1*(`varlist'>`kmin')  if `touse' 
-                                }
-                                else {
-                                        scalar `dgen'`nparams' = 1*(`scalar'>`kmin')
-                                }
-                                local drcslist `drcslist' `dgen'`nparams'
-                        }
-                }
-        }
+			if "`dgen'" != "" {
+				if "`scalar'" == "" {
+					quietly gen double `dgen'`nparams' = 1*(`varlist'>`kmin')  if `touse' 
+				}
+				else {
+					scalar `dgen'`nparams' = 1*(`scalar'>`kmin')
+				}
+				local drcslist `drcslist' `dgen'`nparams'
+			}
+		}
+	}
  
  ****************************!!!*********************			
 		
 	else if "`nosecondder'" == "" & "`reverse'" != "" & "`nofirstder'" != ""{
-                			
-                local nk : word count `knots'
-                if "`knots'" == "" {
-                        local interior  = 0
-                }
-                else {
-                        local interior  = `nk' - 2
-                }
-                local nparams = `interior' + 3
-				local npar = `interior' + 1
-				local par = `interior' + 2
+		local nk : word count `knots'
+		if "`knots'" == "" {
+			local interior  = 0
+		}
+		else {
+			local interior  = `nk' - 2
+		}
+		local nparams = `interior' + 3
+		local npar = `interior' + 1
+		local par = `interior' + 2
 
-                if "`knots'" != "" {
-                        local i = 1 
-                        tokenize "`knots'"
-                        while "``i''" != "" {
-                                local k`i' ``i''
-                                local i = `i' + 1
-                        }
+		if "`knots'" != "" {
+		local i = 1 
+		tokenize "`knots'"
+		while "``i''" != "" {
+			local k`i' ``i''
+			local i = `i' + 1
+		}
 
-                        local kmin = `k1'
-                        local kmax = `k`nk''
-	/* Derive first spline variable */
-                       if "`scalar'" == "" {
-                                quietly gen double `gen'1 = (`kmax'-`varlist')*(`kmax'>`varlist')  if `touse'
-                        }
-                        else {
-                                scalar `gen'1 = (`kmax'-`scalar')*(`kmax'>`scalar')  
-                        }
-                        local rcslist `gen'1
+		local kmin = `k1'
+		local kmax = `k`nk''
+/* Derive first spline variable */
+		if "`scalar'" == "" {
+			quietly gen double `gen'1 = (`kmax'-`varlist')*(`kmax'>`varlist')  if `touse'
+		}
+		else {
+			scalar `gen'1 = (`kmax'-`scalar')*(`kmax'>`scalar')  
+		}
 
-/* generate first derivative if dgen option is specified */
-                        if "`dgen'" != "" {
-                                if "`scalar'" == "" {
-                                        quietly gen double `dgen'1 = -1*(`kmax'>`varlist') if `touse' 
-                                }
-                                else {
-                                        scalar `dgen'1 = -1
-                                }
-                                local drcslist `dgen'1
-                        }
-
-	/* Derive second spline variable */
-                        local c=(1/(3*(`kmax' - `kmin')))						
-                        if "`scalar'" == "" {
-                                quietly gen double `gen'2 = (`kmax'-`varlist')^2*(`kmax'>`varlist') - ///
-								`c'*((`kmax'-`varlist')^3)*(`kmax'>`varlist') + ///
-                                                                 `c'*((`kmin'-`varlist')^3)*(`kmin'>`varlist') if `touse'
-                        }
-                        else {
-                                scalar `gen'2 = (`kmax'-`scalar')^2*(`kmax'>`scalar') - ///
-								`c'*((`kmax'-`scalar')^3)*(`kmax'>`scalar') + ///
-                                                                 `c'*((`kmin'-`scalar')^3)*(`kmin'>`scalar') 
-                        }
-                        local rcslist `rcslist' `gen'2
+		if "`center'"!= "" {
+			tempname center1
+				scalar `center1' = (`kmax'-`center')*(`kmax'>`center')   
+		}						
+						
+		local rcslist `gen'1
 
 /* generate first derivative if dgen option is specified */
-                        if "`dgen'" != "" {
-                                if "`scalar'" == "" {
-                                        quietly gen double `dgen'2 = -2*(`kmax'-`varlist')*(`kmax'>`varlist') - ///
-								 (-3)*`c'*((`kmax'-`varlist')^2)*(`kmax'>`varlist') + ///
-                                                                 (-3)*`c'*((`kmin'-`varlist')^2)*(`kmin'>`varlist') if `touse' 
-                                }
-                                else {
-                                        scalar `dgen'2 = -2*(`kmax'-`scalar')*(`kmax'>`scalar') - ///
-								 (-3)*`c'*((`kmax'-`scalar')^2)*(`kmax'>`scalar') + ///
-                                                                 (-3)*`c'*((`kmin'-`scalar')^2)*(`kmin'>`scalar')
-                                }
-                                local drcslist `drcslist' `dgen'2
-                        }
+		if "`dgen'" != "" {
+			if "`scalar'" == "" {
+				quietly gen double `dgen'1 = -1*(`kmax'>`varlist') if `touse' 
+			}
+			else {
+				scalar `dgen'1 = -1
+			}
+			local drcslist `dgen'1
+		}
 
+/* Derive second spline variable */
+		local c=(1/(3*(`kmax' - `kmin')))						
+		if "`scalar'" == "" {
+			quietly gen double `gen'2 = (`kmax'-`varlist')^2*(`kmax'>`varlist') - ///
+				`c'*((`kmax'-`varlist')^3)*(`kmax'>`varlist') + ///
+				`c'*((`kmin'-`varlist')^3)*(`kmin'>`varlist') if `touse'
+		}
+		else {
+			scalar `gen'2 = (`kmax'-`scalar')^2*(`kmax'>`scalar') - ///
+				`c'*((`kmax'-`scalar')^3)*(`kmax'>`scalar') + ///
+				`c'*((`kmin'-`scalar')^3)*(`kmin'>`scalar') 
+		}
+						
+		if "`center'"!= "" {
+			scalar center2 = (`kmax'-`center')^2*(`kmax'>`center') - ///
+				`c'*((`kmax'-`center')^3)*(`kmax'>`center') + ///
+				`c'*((`kmin'-`center')^3)*(`kmin'>`center') 
+		}	
+						
+		local rcslist `rcslist' `gen'2
 
-                        forvalues j=3/`par' {
-                                local h = `nk'-(`j'-2)
-                                local lambda = (`k`h''-`kmin')/(`kmax' - `kmin')
-                                if "`scalar'" == "" {
-                                        quietly gen double `gen'`j' = ((`k`h''-`varlist')^3)*(`k`h''>`varlist') - ///
-                                                                `lambda'*((`kmax'-`varlist')^3)*(`kmax'>`varlist') - ///
-                                                                (1-`lambda')*((`kmin'-`varlist')^3)*(`kmin'>`varlist') if `touse'
-                                }
-                                else {
-                                        scalar `gen'`j' = ((`k`h''-`scalar')^3)*(`k`h''>`scalar') - ///
-                                                                `lambda'*((`kmax'-`scalar')^3)*(`kmax'>`scalar') - ///
-                                                                (1-`lambda')*((`kmin'-`scalar')^3)*(`kmin'>`scalar') 
-                                }
-                                local rcslist `rcslist' `gen'`j'
+/* generate first derivative if dgen option is specified */
+		if "`dgen'" != "" {
+			if "`scalar'" == "" {
+				quietly gen double `dgen'2 = -2*(`kmax'-`varlist')*(`kmax'>`varlist') - ///
+					(-3)*`c'*((`kmax'-`varlist')^2)*(`kmax'>`varlist') + ///
+					(-3)*`c'*((`kmin'-`varlist')^2)*(`kmin'>`varlist') if `touse' 
+			}
+			else {
+				scalar `dgen'2 = -2*(`kmax'-`scalar')*(`kmax'>`scalar') - ///
+					(-3)*`c'*((`kmax'-`scalar')^2)*(`kmax'>`scalar') + ///
+					(-3)*`c'*((`kmin'-`scalar')^2)*(`kmin'>`scalar')
+			}
+			local drcslist `drcslist' `dgen'2
+		}
+
+		forvalues j=3/`par' {
+			local h = `nk'-(`j'-2)
+			local lambda = (`k`h''-`kmin')/(`kmax' - `kmin')
+			if "`scalar'" == "" {
+				quietly gen double `gen'`j' = ((`k`h''-`varlist')^3)*(`k`h''>`varlist') - ///
+					`lambda'*((`kmax'-`varlist')^3)*(`kmax'>`varlist') - ///
+					(1-`lambda')*((`kmin'-`varlist')^3)*(`kmin'>`varlist') if `touse'
+				}
+				else {
+					scalar `gen'`j' = ((`k`h''-`scalar')^3)*(`k`h''>`scalar') - ///
+						`lambda'*((`kmax'-`scalar')^3)*(`kmax'>`scalar') - ///
+						(1-`lambda')*((`kmin'-`scalar')^3)*(`kmin'>`scalar') 
+				}
+						
+				if "`center'"!= "" {
+					tempname center`j'
+					scalar `center`j'' = ((`k`h''-`center')^3)*(`k`h''>`center') - ///
+						`lambda'*((`kmax'-`center')^3)*(`kmax'>`center') - ///
+						(1-`lambda')*((`kmin'-`center')^3)*(`kmin'>`center') 						
+				}									
+								
+				local rcslist `rcslist' `gen'`j'
 
 /* calculate derivatives */
-                                if "`dgen'"!="" {
-                                        if "`scalar'" == "" {
-                                                quietly gen double `dgen'`j' = (-3*(`k`h''-`varlist')^2)*(`k`h''>`varlist') - ///
-                                                                        `lambda'*(-3*(`kmax'-`varlist')^2)*(`kmax'>`varlist') - ///
-                                                                        (1-`lambda')*(-3*(`kmin'-`varlist')^2)*(`kmin'>`varlist')  if `touse'
-                                        }
-                                        else {
-                                                scalar `dgen'`j' = (-3*(`k`h''-`scalar')^2)*(`k`h''>`scalar') - ///
-                                                                        `lambda'*(-3*(`kmax'-`scalar')^2)*(`kmax'>`scalar') - ///
-                                                                        (1-`lambda')*(-3*(`kmin'-`scalar')^2)*(`kmin'>` scalar') 
-
-                                        }
-                                        local drcslist `drcslist' `dgen'`j'
-                                }       
-                        }
+				if "`dgen'"!="" {
+					if "`scalar'" == "" {
+						quietly gen double `dgen'`j' = (-3*(`k`h''-`varlist')^2)*(`k`h''>`varlist') - ///
+							`lambda'*(-3*(`kmax'-`varlist')^2)*(`kmax'>`varlist') - ///
+							(1-`lambda')*(-3*(`kmin'-`varlist')^2)*(`kmin'>`varlist')  if `touse'
+					}
+					else {
+						scalar `dgen'`j' = (-3*(`k`h''-`scalar')^2)*(`k`h''>`scalar') - ///
+							`lambda'*(-3*(`kmax'-`scalar')^2)*(`kmax'>`scalar') - ///
+							(1-`lambda')*(-3*(`kmin'-`scalar')^2)*(`kmin'>` scalar') 
+					}
+					local drcslist `drcslist' `dgen'`j'
+				}       
+			}
 /* Derive last spline variable */
-                        if "`scalar'" == "" {
-                                quietly gen double `gen'`nparams' = `varlist' if `touse'
-                        }
-                        else {
-                                scalar `gen'`nparams' = `scalar' 
-                        }
-                        local rcslist `rcslist' `gen'`nparams'
+			if "`scalar'" == "" {
+				quietly gen double `gen'`nparams' = `varlist' if `touse'
+			}
+			else {
+				scalar `gen'`nparams' = `scalar' 
+			}
+
+			if "`center'"!= "" {
+				tempname center`nparams'
+				scalar `center`nparams'' = `center' 
+			}
+						
+			local rcslist `rcslist' `gen'`nparams'
 
 /* generate first derivative if dgen option is specified */
-                        if "`dgen'" != "" {
-                                if "`scalar'" == "" {
-                                        quietly gen double `dgen'`nparams' = 1 if `touse'
-                                }
-                                else {
-                                        scalar `dgen'`nparams' = 1 
-                                }
-                                local drcslist `drcslist' `dgen'`nparams'
-                        }
-                }
-        }
+			if "`dgen'" != "" {
+				if "`scalar'" == "" {
+					quietly gen double `dgen'`nparams' = 1 if `touse'
+				}
+				else {
+					scalar `dgen'`nparams' = 1 
+				}
+				local drcslist `drcslist' `dgen'`nparams'
+			}
+		}
+	}
  
 **************************** !!!! ************************************  
  
@@ -849,56 +950,54 @@ program define rcsgen, rclass
 			local kmin = `k1'
 			local kmax = `k`nk''
 
-		if "`nosecondder'" == "" & "`nofirstder'" == "" {
-			forvalues j=1/`interior' {
-				local h = `nk'-`j'
-				local lambda = (`k`h''-`kmin')/(`kmax' - `kmin')
-				local rcsvalue`j' = ((`k`h''-`kmax')^3)*(`k`h''>`kmax') - ///
-												`lambda'*((`kmax'-`kmax')^3)*(`kmax'>`kmax') - ///
-												(1-`lambda')*((`kmin'-`kmax')^3)*(`kmin'>`kmax')
-				local rcsvaluelist `rcsvaluelist' `rcsvalue`j''
+			if "`nosecondder'" == "" & "`nofirstder'" == "" {
+				forvalues j=1/`interior' {
+					local h = `nk'-`j'
+					local lambda = (`k`h''-`kmin')/(`kmax' - `kmin')
+					local rcsvalue`j' = ((`k`h''-`kmax')^3)*(`k`h''>`kmax') - ///
+						`lambda'*((`kmax'-`kmax')^3)*(`kmax'>`kmax') - ///
+						(1-`lambda')*((`kmin'-`kmax')^3)*(`kmin'>`kmax')
+					local rcsvaluelist `rcsvaluelist' `rcsvalue`j''
+				}
+			}
+			if "`nosecondder'" != "" & "`nofirstder'" == "" {
+				local c=(1/(3*(`kmax' - `kmin')))						
+				local rcsvalue1 = (`kmax'-`kmax')^2*(`kmax'>`kmax') - ///
+					`c'*((`kmax'-`kmax')^3)*(`kmax'>`kmax') + ///
+					`c'*((`kmin'-`kmax')^3)*(`kmin'>`kmax') 
+				local rcsvaluelist `rcsvalue1'
+							
+				forvalues j=2/`npar' {
+					local h = `nk'-(`j'-1)
+					local lambda = (`k`h''-`kmin')/(`kmax' - `kmin')
+					local rcsvalue`j' = ((`k`h''-`kmax')^3)*(`k`h''>`kmax') - ///
+						`lambda'*((`kmax'-`kmax')^3)*(`kmax'>`kmax') - ///
+						(1-`lambda')*((`kmin'-`kmax')^3)*(`kmin'>`kmax') 
+					local rcsvaluelist `rcsvaluelist' `rcsvalue`j''
+				}
+			}
+						
+			if "`nosecondder'" == "" & "`nofirstder'" != "" {
+				local rcsvalue1 = (`kmax'-`kmax')*(`kmax'>`kmax')
+				local rcsvaluelist `rcsvalue1'
+							
+				local c=(1/(3*(`kmax' - `kmin')))
+				local rcsvalue2 = (`kmax'-`kmax')^2*(`kmax'>`kmax') - ///
+					`c'*((`kmax'-`kmax')^3)*(`kmax'>`kmax') + ///
+					`c'*((`kmin'-`kmax')^3)*(`kmin'>`kmax') 
+				local rcsvaluelist `rcsvaluelist' `rcsvalue2'
+							
+				forvalues j=3/`par' {
+					local h = `nk'-(`j'-2)
+					local lambda = (`k`h''-`kmin')/(`kmax' - `kmin')
+					local rcsvalue`j' = ((`k`h''-`kmax')^3)*(`k`h''>`kmax') - ///
+						`lambda'*((`kmax'-`kmax')^3)*(`kmax'>`kmax') - ///
+						(1-`lambda')*((`kmin'-`kmax')^3)*(`kmin'>`kmax')
+					local rcsvaluelist `rcsvaluelist' `rcsvalue`j''
+				}
 			}
 		}
-						if "`nosecondder'" != "" & "`nofirstder'" == "" {
-							local c=(1/(3*(`kmax' - `kmin')))						
-							local rcsvalue1 = (`kmax'-`kmax')^2*(`kmax'>`kmax') - ///
-												  `c'*((`kmax'-`kmax')^3)*(`kmax'>`kmax') + ///
-                                                  `c'*((`kmin'-`kmax')^3)*(`kmin'>`kmax') 
-							local rcsvaluelist `rcsvalue1'
-							
-							forvalues j=2/`npar' {
-									local h = `nk'-(`j'-1)
-									local lambda = (`k`h''-`kmin')/(`kmax' - `kmin')
-                                    local rcsvalue`j' = ((`k`h''-`kmax')^3)*(`k`h''>`kmax') - ///
-                                                         `lambda'*((`kmax'-`kmax')^3)*(`kmax'>`kmax') - ///
-                                                         (1-`lambda')*((`kmin'-`kmax')^3)*(`kmin'>`kmax') 
-									local rcsvaluelist `rcsvaluelist' `rcsvalue`j''
-							}
-						}
-						
-						
-						if "`nosecondder'" == "" & "`nofirstder'" != "" {
-							local rcsvalue1 = (`kmax'-`kmax')*(`kmax'>`kmax')
-							local rcsvaluelist `rcsvalue1'
-							
-							local c=(1/(3*(`kmax' - `kmin')))
-							local rcsvalue2 = (`kmax'-`kmax')^2*(`kmax'>`kmax') - ///
-								        `c'*((`kmax'-`kmax')^3)*(`kmax'>`kmax') + ///
-                                        `c'*((`kmin'-`kmax')^3)*(`kmin'>`kmax') 
-							local rcsvaluelist `rcsvaluelist' `rcsvalue2'
-							
-							forvalues j=3/`par' {
-                                local h = `nk'-(`j'-2)
-                                local lambda = (`k`h''-`kmin')/(`kmax' - `kmin')
-                                local rcsvalue`j' = ((`k`h''-`kmax')^3)*(`k`h''>`kmax') - ///
-                                            `lambda'*((`kmax'-`kmax')^3)*(`kmax'>`kmax') - ///
-                                            (1-`lambda')*((`kmin'-`kmax')^3)*(`kmin'>`kmax')
-								local rcsvaluelist `rcsvaluelist' `rcsvalue`j''
-							}
-						}
-						
-                }
-		/* Derive last spline variable */
+/* Derive last spline variable */
 		local rcsvaluelist `rcsvaluelist' `kmax'
 		
 		matrix input rcsvaluevector=(`rcsvaluelist' 1)
@@ -915,7 +1014,36 @@ program define rcsgen, rclass
 			}
 		}
 	}
-
+	
+	***Orthogonalise the centred scalars**
+	if ("`orthog'" != "" | "`rmatrix'"!= "") & "`center'"!="" {
+		tempname centermatrix
+		matrix `centermatrix' = `=`center1''
+		forvalues i = 2/`nparams'{
+			matrix `centermatrix' = `centermatrix',`=`center`i'''
+		}
+		matrix `centermatrix' = `centermatrix',1
+		mata st_matrix("`centermatrix'",st_matrix("`centermatrix'")*st_matrix("`Rinv'")[,1..`nparams']) 
+		forvalues i = 1/`nparams'{
+			scalar `center`i'' = el(`centermatrix',1,`i')
+		}	
+	}
+		
+		
+**Centre the spline variables if center specified***
+	if "`center'"!= "" {
+		if "`scalar'" == "" {
+			forvalues j=1/`nparams' {
+				qui replace `gen'`j' = `gen'`j' - `=`center`j'''
+			}
+		}
+		else {
+			forvalues j=1/`nparams' {
+				scalar `gen'`j' = `gen'`j' - `=`center`j'''
+			}
+		}
+	}
+	
 /* report new variables created */        
 	if "`scalar'" != "" {
 		local type Scalars
@@ -937,6 +1065,8 @@ program define rcsgen, rclass
 		return matrix R = `R'
 	}
 	return local knots `knots'
+	return local rcslist `rcslist'
+	if "`dgen'" != ""  return local drcslist `drcslist'   	
 end
 
 /* Gram-Schmidt orthogonalization in Mata */        

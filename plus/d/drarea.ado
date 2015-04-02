@@ -1,13 +1,16 @@
-*! Date    : 29 May 2013
-*! Version : 1.05
+*! Date    : 27 October 2014
+*! Version : 1.08
 *! Author  : Adrian Mander
 *! Email   : adrian.mander@mrc-bsu.cam.ac.uk
 
 /*
- 2/4/07  v1.02 allows the user to specify the overlap colour as the third color in the color() option
- 2/4/07  v1.03 allows the overlapping areas to be saved into the dataset but to get 3 overlapping areas doesn't work so isn't a documented feature.
-20/9/07  v1.04 allows additional twoway plots to be added
-29/5/13  v1.05 fixes the help file
+ 2/4/07   v1.02 allows the user to specify the overlap colour as the third color in the color() option
+ 2/4/07   v1.03 allows the overlapping areas to be saved into the dataset but to get 3 overlapping areas doesn't work so isn't a documented feature.
+20/9/07   v1.04 allows additional twoway plots to be added
+29/5/13   v1.05 fixes the help file
+ 9/5/14   v1.06 fixes a bug found by Anna Drabik to handle values being equal
+12/5/14   v1.07 fixes a legend bug
+27/10/14  v1.08 fixes another bug with overlapping lines... zone 2-4
 */
  
 program def drarea 
@@ -53,13 +56,16 @@ if `r(N)'>0 {
   replace `h2'=`l2' if `h2'<`l2'
 }
 
-/* Calculate the zones, next zone, future and last zone */
-qui gen `zone' = ((`h2'>`h1')*(`l2'>`h1')*(`l2'>`l1')*(`h2'>`l1'))*1 + ////  /*  h2 l2 h1 l1 */
-               ((`h2'>`h1')*(`l2'<`h1')*(`l2'>`l1')*(`h2'>`l1'))*2 + ////  /*  h2 h1 l2 l1 */ 
-               ((`h2'>`h1')*(`l2'<`h1')*(`l2'<`l1')*(`h2'>`l1'))*3 + ////  /*  h2 h1 l1 l2 */
-               ((`h2'<`h1')*(`l2'<`h1')*(`l2'<`l1')*(`h2'<`l1'))*4 + ////  /*  h1 l1 h2 l2 */
-               ((`h2'<`h1')*(`l2'<`h1')*(`l2'<`l1')*(`h2'>`l1'))*5 + ////  /*  h1 h2 l1 l2 */ 
-               ((`h2'<`h1')*(`l2'<`h1')*(`l2'>`l1')*(`h2'>`l1'))*6         /*  h1 h2 l2 l1 */
+/************************************************************
+ * Calculate the zones, next zone, future and last zone 
+ * for v1.06 I changed > to >= to try and handle equality!
+ ************************************************************/
+qui gen `zone' = ((`h2'>=`h1')*(`l2'>=`h1')*(`l2'>=`l1')*(`h2'>=`l1'))*1 + ////  /*  h2 l2 h1 l1 */
+               ((`h2'>=`h1')*(`l2'<`h1')*(`l2'>=`l1')*(`h2'>=`l1'))*2 + ////     /*  h2 h1 l2 l1 */ 
+               ((`h2'>=`h1')*(`l2'<`h1')*(`l2'<`l1')*(`h2'>=`l1'))*3 + ////      /*  h2 h1 l1 l2 */
+               ((`h2'<`h1')*(`l2'<`h1')*(`l2'<`l1')*(`h2'<`l1'))*4 + ////        /*  h1 l1 h2 l2 */
+               ((`h2'<`h1')*(`l2'<`h1')*(`l2'<`l1')*(`h2'>=`l1'))*5 + ////       /*  h1 h2 l1 l2 */ 
+               ((`h2'<`h1')*(`l2'<`h1')*(`l2'>=`l1')*(`h2'>=`l1'))*6             /*  h1 h2 l2 l1 */
 qui gen `zone1' = `zone'[_n+1]
 qui gen `zonelast' = `zone' in 1
 qui replace `zonelast' = cond(`zone'==4 | `zone'==1, `zonelast'[_n-1], `zone')
@@ -70,6 +76,7 @@ sort `x' `lineorder'
 
 /* 
 Used my blist for debugging 
+
 blist
 */
 
@@ -167,7 +174,23 @@ forv i=1/`nobs' {
         qui replace `l1' = `r(h)' in `lobs'
         qui replace `x' = `r(x)' in `lobs'
       }
-     if (`zone'[`i']==2 & `zone1'[`i']==4) | (`zone'[`i']==4 & `zone1'[`i']==2) { /* Three lines cross */
+     if (`zone'[`i']==2 & `zone1'[`i']==4) { /* Three lines cross */
+        qui _calc `l1'[`i'] `l1'[`i'+1] `l2'[`i'] `l2'[`i'+1] `x'[`i'] `x'[`i'+1]
+        qui replace `h1' = . in `lobs'
+        qui replace `l1' = `r(l)' in `lobs'
+        qui replace `x' = `r(x)' in `lobs' 
+        qui set obs `++lobs'
+        qui _calc `h1'[`i'] `h1'[`i'+1] `h2'[`i'] `h2'[`i'+1] `x'[`i'] `x'[`i'+1]
+        qui replace `h1' = `r(h)' in `lobs'
+        qui replace `l1' = . in `lobs'
+        qui replace `x' = `r(x)' in `lobs'
+        qui set obs `++lobs'
+        qui _calc `h2'[`i'] `h2'[`i'+1] `l1'[`i'] `l1'[`i'+1] `x'[`i'] `x'[`i'+1]
+        qui replace `h1' = `r(h)' in `lobs'
+        qui replace `l1' = . in `lobs'
+        qui replace `x' = `r(x)' in `lobs'
+     }
+     if (`zone'[`i']==4 & `zone1'[`i']==2) { /* Three lines cross */
         qui _calc `l1'[`i'] `l1'[`i'+1] `l2'[`i'] `l2'[`i'+1] `x'[`i'] `x'[`i'+1]
         qui replace `h1' = . in `lobs'
         qui replace `l1' = `r(l)' in `lobs'
@@ -370,9 +393,13 @@ forv i=1/`nobs' {
 qui sort `x' `lineorder'
 
 /*
+blist
+*/
+/*
 Generate the variables for the overlapping area 
 
 The imputed points at the junction zone==. shouldn't be plotted for the original data
+zone is the current zone the points are in.
 */
 
 qui gen `h4'     = `h1' if `zone'==2 
@@ -393,7 +420,8 @@ qui replace `l4' = `h1' if `zone'==4
 
 /* Corrections for all the switching over of the base line... choosing top or bottom 
 Because rarea doesn't stop at missing data the in between overlapping areas turn into a line
-The line is secretly attached to one of the range plots so you don't see the magic
+The line is secretly attached to one of the range plots so you don't see the magic!
+zone1 is the next zone.
 */
 qui replace `h4' = `l1' if `zone'==4 & ( `zone1'==6 | `zone1'==5 )
 qui replace `l4' = `l1' if `zone'==4 & ( `zone1'==6 | `zone1'==5 )
@@ -403,6 +431,8 @@ qui replace `h4' = `l1' if `zone'==4 & `zone1'==. & (`zonelast'==5 | `zonelast'=
 qui replace `l4' = `l1' if `zone'==4 & `zone1'==. & (`zonelast'==5 | `zonelast'==6)
 qui replace `h4' = `l1' if `zone'==4 & `zone1'==4 & (`zonefuture'==5) 
 qui replace `l4' = `l1' if `zone'==4 & `zone1'==4 & (`zonefuture'==5)
+qui replace `h4' = `l1' if `zone'==4 & `zone1'==4 & (`zonelast'==2) 
+qui replace `l4' = `l1' if `zone'==4 & `zone1'==4 & (`zonelast'==2)
 qui replace `h4' = `l1' if `zone'==4 & `zone1'==1 
 qui replace `l4' = `l1' if `zone'==4 & `zone1'==1
 qui replace `h4' = `l1' if `zone'==4 & `zone1'==2  
@@ -411,7 +441,7 @@ qui replace `h4' = `l1' if `zone'==4 & `zone1'==3
 qui replace `l4' = `l1' if `zone'==4 & `zone1'==3
 
 /*
-blist
+blist `h1' `l1' `h2' `l2' `x' `zone' `zone1' `zonelast' `zonefuture' `h4' `l4'
 *list
 */
 
@@ -453,12 +483,10 @@ di `c3'
 
 }
 
-
 if "`add'"~="" local xtra "(scatter `h4' `x', ms(x) mc(black) ) (scatter `l4' `x', ms(x) mcolor(red) )" 
 
 twoway (rarea `h1' `l1' `x' if `zone'~=., fc("`c1'") lc(black) lw(0) ) (rarea `h2' `l2' `x' if `zone'~=., fc("`c2'")  lc(black) lw(0) ) ////
- (rarea `h4' `l4' `x', fc("`c3'") lc(black) lw(none) ) `xtra' `twoway',  scheme(s2color) `xoptions' legend(order(1 2))
-
+ (rarea `h4' `l4' `x', fc("`c3'") lc(black) lw(none) ) `xtra' `twoway',  scheme(s2color)  legend(order(1 2)) `xoptions'
 
 /* To generate the variables in the above command */
 

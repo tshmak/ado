@@ -1,4 +1,4 @@
-*! version 3.13  06aug2009  Ben Jann
+*! version 3.17  02jun2014  Ben Jann
 
 program define estout, rclass
     version 8.2
@@ -12,21 +12,18 @@ program define estout, rclass
         Indicate(string asis) ///
         TRansform(string asis) ///
         EQuations(passthru) ///
-        NOEFORM eform EFORM2(string) ///
-        NOMargin Margin Margin2(string) ///
-        NODIscrete DIscrete(string asis) ///
+        EFORM2(string) ///
+        Margin2(string) ///
+        DIscrete(string asis) ///
         MEQs(string) ///
-        NODROPPED dropped DROPPED2(string) ///
+        DROPPED2(string) ///
         level(numlist max=1 int >=10 <=99) ///
         Stats(string asis) ///
         STARLevels(string asis) ///
-        NOSTARDetach STARDetach ///
         STARKeep(string asis) ///
         STARDrop(string asis) ///
         VARwidth(numlist max=1 int >=0) ///
         MODELwidth(numlist int >=0) ///
-        NOABbrev ABbrev ///
-        NOUNStack UNStack ///
         EXTRAcols(numlist sort) ///
         BEGin(string asis) ///
         DELimiter(string asis) ///
@@ -34,21 +31,19 @@ program define estout, rclass
         end(string asis) ///
         DMarker(string) ///
         MSign(string) ///
-        NOLZ lz ///
         SUBstitute(string asis) ///
+        INTERACTion(string asis) ///
         TItle(string) ///
         note(string) ///
-        NOLEgend LEgend ///
         PREHead(string asis) ///
         POSTHead(string asis) ///
         PREFoot(string asis) ///
         POSTFoot(string asis) ///
         HLinechar(string) ///
-        NOLabel Label ///
         VARLabels(string asis) ///
         REFcat(string asis) ///
         MLabels(string asis) ///
-        NONUMbers NUMbers NUMbers2(string asis) ///
+        NUMbers2(string asis) ///
         COLLabels(string asis) ///
         EQLabels(string asis) ///
         MGRoups(string asis) ///
@@ -203,7 +198,8 @@ program define estout, rclass
 *Process No-Options
     foreach opt in unstack eform margin dropped discrete stardetach wrap ///
      legend label refcatlabel numbers lz abbrev replace append type showtabs ///
-     smcltags smclrules smclmidrules smcleqrules asis outfilenoteoff {
+     smcltags smclrules smclmidrules smcleqrules asis outfilenoteoff ///
+     omitted baselevels {
         if "`no`opt''"!="" local `opt'
     }
 
@@ -213,44 +209,50 @@ program define estout, rclass
     if inlist("`defaults'", "", "smcl", "tab", "fixed", "tex", "html","mmd")  {
         local varwidthfactor = (1 + ("`eqlabelsmerge'"!="" & "`unstack'"=="")*.5)
         if inlist("`defaults'", "", "tab") {
-            if `"`macval(delimiter)'"'=="" local delimiter _tab
+            if `"`macval(delimiter)'"'==""   local delimiter _tab
+            if `"`macval(interaction)'"'=="" local interaction `"" # ""'
         }
         else if "`defaults'"=="smcl" {
-            if "`varwidth'"==""            local varwidth = cond("`label'"=="", 12, 20) * `varwidthfactor'
-            if "`modelwidth'"==""          local modelwidth 12
-            if "`noabbrev'"==""            local abbrev abbrev
-            if `"`macval(delimiter)'"'=="" local delimiter `"" ""'
-            if "`nosmcltags'"==""          local smcltags smcltags
-            if "`nosmclrules'"==""         local smclrules smclrules
-            if "`asis'"==""                local noasis noasis
+            if "`varwidth'"==""              local varwidth = cond("`label'"=="", 12, 20) * `varwidthfactor'
+            if "`modelwidth'"==""            local modelwidth 12
+            if "`noabbrev'"==""              local abbrev abbrev
+            if `"`macval(delimiter)'"'==""   local delimiter `"" ""'
+            if "`nosmcltags'"==""            local smcltags smcltags
+            if "`nosmclrules'"==""           local smclrules smclrules
+            if "`asis'"==""                  local noasis noasis
+            if `"`macval(interaction)'"'=="" local interaction `"" # ""'
         }
         else if "`defaults'"=="fixed" {
-            if "`varwidth'"==""            local varwidth = cond("`label'"=="", 12, 20) * `varwidthfactor'
-            if "`modelwidth'"==""          local modelwidth 12
-            if "`noabbrev'"==""            local abbrev abbrev
-            if `"`macval(delimiter)'"'=="" local delimiter `"" ""'
+            if "`varwidth'"==""              local varwidth = cond("`label'"=="", 12, 20) * `varwidthfactor'
+            if "`modelwidth'"==""            local modelwidth 12
+            if "`noabbrev'"==""              local abbrev abbrev
+            if `"`macval(delimiter)'"'==""   local delimiter `"" ""'
+            if `"`macval(interaction)'"'=="" local interaction `"" # ""'
         }
         else if "`defaults'"=="tex" {
-            if "`varwidth'"==""            local varwidth = cond("`label'"=="", 12, 20) * `varwidthfactor'
-            if "`modelwidth'"==""          local modelwidth 12
-            if `"`macval(delimiter)'"'=="" local delimiter &
+            if "`varwidth'"==""              local varwidth = cond("`label'"=="", 12, 20) * `varwidthfactor'
+            if "`modelwidth'"==""            local modelwidth 12
+            if `"`macval(delimiter)'"'==""   local delimiter &
             if `"`macval(end)'"'=="" {
                 local end \\\
             }
+            if `"`macval(interaction)'"'=="" local interaction `"" $\times$ ""'
         }
         else if "`defaults'"=="html" {
-            if "`varwidth'"==""            local varwidth = cond("`label'"=="", 12, 20) * `varwidthfactor'
-            if "`modelwidth'"==""          local modelwidth 12
-            if `"`macval(begin)'"'==""     local begin <tr><td>
-            if `"`macval(delimiter)'"'=="" local delimiter </td><td>
-            if `"`macval(end)'"'==""       local end </td></tr>
+            if "`varwidth'"==""              local varwidth = cond("`label'"=="", 12, 20) * `varwidthfactor'
+            if "`modelwidth'"==""            local modelwidth 12
+            if `"`macval(begin)'"'==""       local begin <tr><td>
+            if `"`macval(delimiter)'"'==""   local delimiter </td><td>
+            if `"`macval(end)'"'==""         local end </td></tr>
+            if `"`macval(interaction)'"'=="" local interaction `"" # ""'
         }
         else if "`defaults'"=="mmd" {
-            if "`varwidth'"==""            local varwidth = cond("`label'"=="", 12, 20) * `varwidthfactor'
-            if "`modelwidth'"==""          local modelwidth 12
-            if `"`macval(begin)'"'==""     local begin "| "
-            if `"`macval(delimiter)'"'=="" local delimiter " | "
-            if `"`macval(end)'"'==""       local end " |"
+            if "`varwidth'"==""              local varwidth = cond("`label'"=="", 12, 20) * `varwidthfactor'
+            if "`modelwidth'"==""            local modelwidth 12
+            if `"`macval(begin)'"'==""       local begin "| "
+            if `"`macval(delimiter)'"'==""   local delimiter " | "
+            if `"`macval(end)'"'==""         local end " |"
+            if `"`macval(interaction)'"'=="" local interaction `"" # ""'
         }
         if "`nostatslabelsfirst'"=="" local statslabelsfirst first
         if "`nostatslabelslast'"==""  local statslabelslast last
@@ -265,6 +267,8 @@ program define estout, rclass
         if `"`macval(indicatelabels)'"'=="" local indicatelabels "Yes No"
         if `"`macval(refcatlabel)'"'=="" & "`norefcatlabel'"==""    local refcatlabel "ref."
         if `"`macval(incelldelimiter)'"'=="" local incelldelimiter " "
+        if "`noomitted'"==""          local omitted omitted
+        if "`nobaselevels'"==""       local baselevels baselevels
     }
     else {
         capture findfile estout_`defaults'.def
@@ -502,7 +506,8 @@ program define estout, rclass
 *   - get results
         local temp names(`models') coefs(`values1mrow') stats(`stats'`p') ///
             `rename' margin(`margin') meqs(`meqs') dropped(`droppedison') level(`level') ///
-            transform(`transform') transformpattern(`transformpattern')
+            transform(`transform') transformpattern(`transformpattern') ///
+            `omitted' `baselevels'
         _estout_getres, `equations' `temp'
         local ccols = r(ccols)
         if `"`equations'"'=="" & "`unstack'"=="" & `ccols'>0 { // specify equations("") to deactivate
@@ -943,11 +948,11 @@ program define estout, rclass
         if `strcount' {
             local hasrtfbrdr 1
             local rtfbeginbak `"`macval(begin)'"'
-            local begin: subinstr local rtfbeginbak "@rtfrowdefbrdr" `"`rtfrowdefbrdrt'"'
+            StableSubinstr begin `"`macval(rtfbeginbak)'"' "@rtfrowdefbrdr" `"`rtfrowdefbrdrt'"'
             local rtfbrdron 1
         }
         else {
-            local begin: subinstr local begin "@rtfrowdef" `"`rtfrowdef'"'
+            StableSubinstr begin `"`macval(begin)'"' "@rtfrowdef" `"`rtfrowdef'"'
         }
     }
 
@@ -1040,7 +1045,7 @@ program define estout, rclass
         WriteEnd `"`file'"' `"`macval(tmpend)'"' `"`macval(mgroupsend)'"' ///
          `"`"`macval(value)'"'"'
         if `hasrtfbrdr' & `rtfbrdron' {
-            local begin: subinstr local rtfbeginbak "@rtfrowdefbrdr" `"`rtfrowdef'"'
+            StableSubinstr begin `"`macval(rtfbeginbak)'"' "@rtfrowdefbrdr" `"`rtfrowdef'"'
             local rtfbrdron 0
         }
         gettoken labcol2chunk labcol2rest : labcol2rest
@@ -1065,7 +1070,7 @@ program define estout, rclass
             `""' `"`macval(1)'"' `"`macval(2)'"'
         file write `file' `macval(end)' _n
         if `hasrtfbrdr' & `rtfbrdron' {
-            local begin: subinstr local rtfbeginbak "@rtfrowdefbrdr" `"`rtfrowdef'"'
+            StableSubinstr begin `"`macval(rtfbeginbak)'"' "@rtfrowdefbrdr" `"`rtfrowdef'"'
             local rtfbrdron 0
         }
         gettoken labcol2chunk labcol2rest : labcol2rest
@@ -1102,7 +1107,7 @@ program define estout, rclass
         WriteEnd `"`file'"' `"`macval(tmpend)'"' `"`macval(mlabelsend)'"' ///
          `"`"`macval(value)'"'"'
         if `hasrtfbrdr' & `rtfbrdron' {
-            local begin: subinstr local rtfbeginbak "@rtfrowdefbrdr" `"`rtfrowdef'"'
+            StableSubinstr begin `"`macval(rtfbeginbak)'"' "@rtfrowdefbrdr" `"`rtfrowdef'"'
             local rtfbrdron 0
         }
         gettoken labcol2chunk labcol2rest : labcol2rest
@@ -1140,7 +1145,7 @@ program define estout, rclass
         WriteEnd `"`file'"' `"`macval(tmpend)'"' `"`macval(eqlabelsend)'"' ///
          `"`"`macval(value)'"'"'
         if `hasrtfbrdr' & `rtfbrdron' {
-            local begin: subinstr local rtfbeginbak "@rtfrowdefbrdr" `"`rtfrowdef'"'
+            StableSubinstr begin `"`macval(rtfbeginbak)'"' "@rtfrowdefbrdr" `"`rtfrowdef'"'
             local rtfbrdron 0
         }
         gettoken labcol2chunk labcol2rest : labcol2rest
@@ -1175,7 +1180,7 @@ program define estout, rclass
         WriteEnd `"`file'"' `"`macval(tmpend)'"' `"`macval(collabelsend)'"' ///
          `"`"`macval(value)'"'"'
         if `hasrtfbrdr' & `rtfbrdron' {
-            local begin: subinstr local rtfbeginbak "@rtfrowdefbrdr" `"`rtfrowdef'"'
+            StableSubinstr begin `"`macval(rtfbeginbak)'"' "@rtfrowdefbrdr" `"`rtfrowdef'"'
             local rtfbrdron 0
         }
         gettoken labcol2chunk labcol2rest : labcol2rest
@@ -1217,7 +1222,7 @@ program define estout, rclass
         local weqcnt 0
         local theeqlabel
         if `hasrtfbrdr' {
-            local begin: subinstr local rtfbeginbak "@rtfrowdefbrdr" `"`rtfrowdefbrdrt'"'
+            StableSubinstr begin `"`macval(rtfbeginbak)'"' "@rtfrowdefbrdr" `"`rtfrowdefbrdrt'"'
             local rtfbrdron 1
         }
         local varlabelsbegin0 `"`macval(varlabelsbegin)'"'
@@ -1265,7 +1270,7 @@ program define estout, rclass
                             if "`smcltags'"!="" file write `file' "{txt}"
                             WriteEnd `"`file'"' `"`macval(tmpend)'"' `"`macval(eqlabelsend)'"'
                             if `hasrtfbrdr' & `rtfbrdron' {
-                                local begin: subinstr local rtfbeginbak "@rtfrowdefbrdr" `"`rtfrowdef'"'
+                                StableSubinstr begin `"`macval(rtfbeginbak)'"' "@rtfrowdefbrdr" `"`rtfrowdef'"'
                                 local rtfbrdron 0
                             }
                             local eqlabelsbegin0 `"`macval(eqlabelsbegin)'"'
@@ -1353,7 +1358,7 @@ program define estout, rclass
                 if "`smcltags'"!="" file write `file' "{txt}"
                 WriteEnd `"`file'"' `"`macval(tmpend)'"' `"`macval(varlabelsend0)'"'
                 if `hasrtfbrdr' & `rtfbrdron' {
-                    local begin: subinstr local rtfbeginbak "@rtfrowdefbrdr" `"`rtfrowdef'"'
+                    StableSubinstr begin `"`macval(rtfbeginbak)'"' "@rtfrowdefbrdr" `"`rtfrowdef'"'
                     local rtfbrdron 0
                 }
                 local varlabelsbegin0 `"`macval(varlabelsbegin)'"'
@@ -1378,14 +1383,7 @@ program define estout, rclass
                     }
                 }
                 if "`label'"!="" {
-                    local temp = index("`var'",".")
-                    local temp2  = substr(`"`var'"',`temp'+1,.)
-                    capture local varl: var l `temp2'
-                    if _rc | `"`varl'"'=="" {
-                        local varl `"`temp2'"'
-                    }
-                    local temp2 = substr(`"`var'"',1,`temp')
-                    local varl `"`temp2'`macval(varl)'"'
+                    CompileVarl, vname(`var') interaction(`macval(interaction)')
                 }
                 else local varl `var'
                 VarInList `"`var'"' "`unstack'" `"`eqvar'"' ///
@@ -1411,7 +1409,7 @@ program define estout, rclass
             else local varl
             if `hasrtfbrdr' & `r'==`RI' & !(`isref' & `"`refcatbelow'"'!="") {
                 if `nrvblock'==1 {
-                    local tmpbegin: subinstr local rtfbeginbak "@rtfrowdefbrdr" `"`rtfrowdefbrdrb'"'
+                    StableSubinstr tmpbegin `"`macval(rtfbeginbak)'"' "@rtfrowdefbrdr" `"`rtfrowdefbrdrb'"'
                     local rtfbrdron 1
                 }
             }
@@ -1434,7 +1432,7 @@ program define estout, rclass
                 file write `file' `macval(delimiter)' `fmt_l2' (`"`macval(value)'"')
             }
             if `hasrtfbrdr' & `rtfbrdron' {
-                local begin: subinstr local rtfbeginbak "@rtfrowdefbrdr" `"`rtfrowdef'"'
+                StableSubinstr begin `"`macval(rtfbeginbak)'"' "@rtfrowdefbrdr" `"`rtfrowdef'"'
                 local rtfbrdron 0
             }
             local varlabelsbegin0 `"`macval(varlabelsbegin)'"'
@@ -1446,7 +1444,7 @@ program define estout, rclass
             foreach row of local rvblock {
                 if `hasrtfbrdr' & `r'==`RI' & !(`isref' & `"`refcatbelow'"'!="") {
                     if `"`ferest()'"'=="" {
-                        local begin: subinstr local rtfbeginbak "@rtfrowdefbrdr" `"`rtfrowdefbrdrb'"'
+                        StableSubinstr begin `"`macval(rtfbeginbak)'"' "@rtfrowdefbrdr" `"`rtfrowdefbrdrb'"'
                         local rtfbrdron 1
                     }
                 }
@@ -1615,7 +1613,7 @@ program define estout, rclass
             if `isref' & `"`refcatbelow'"'!="" {
             if "`smcltags'"!="" file write `file' "{txt}"
                 if `hasrtfbrdr' & `r'==`RI' {
-                    local begin: subinstr local rtfbeginbak "@rtfrowdefbrdr" `"`rtfrowdefbrdrb'"'
+                    StableSubinstr begin `"`macval(rtfbeginbak)'"' "@rtfrowdefbrdr" `"`rtfrowdefbrdrb'"'
                     local rtfbrdron 1
                 }
                 if `weqcnt'==`eqdim' & "`varlabelslast'"=="" local varlabelsend0
@@ -1652,7 +1650,7 @@ program define estout, rclass
 *Write indicator sets
     forv i=1/`nindicate' {
         if `hasrtfbrdr' & `i'==`nindicate' {
-            local begin: subinstr local rtfbeginbak "@rtfrowdefbrdr" `"`rtfrowdefbrdrb'"'
+            StableSubinstr begin `"`macval(rtfbeginbak)'"' "@rtfrowdefbrdr" `"`rtfrowdefbrdrb'"'
             local rtfbrdron 1
         }
         if `i'==`nindicate' & "`varlabelslast'"=="" local varlabelsend
@@ -1709,12 +1707,12 @@ program define estout, rclass
     local S: list sizeof statsarray
     local eqr "_"
     if `hasrtfbrdr' {
-        local begin: subinstr local rtfbeginbak "@rtfrowdefbrdr" `"`rtfrowdefbrdrt'"'
+        StableSubinstr begin `"`macval(rtfbeginbak)'"' "@rtfrowdefbrdr" `"`rtfrowdefbrdrt'"'
         local rtfbrdron 1
     }
     forv r = 1/`S' {
         if `r'==`S' & `hasrtfbrdr' {
-            local begin: subinstr local rtfbeginbak "@rtfrowdefbrdr" `"`rtfrowdefbrdrb'"'
+            StableSubinstr begin `"`macval(rtfbeginbak)'"' "@rtfrowdefbrdr" `"`rtfrowdefbrdrb'"'
             local rtfbrdron 1
         }
         local stat: word `r' of `macval(statslabels)'
@@ -1840,7 +1838,7 @@ program define estout, rclass
         if "`smcltags'"!="" file write `file' "{txt}"
         WriteEnd `"`file'"' `"`macval(tmpend)'"' `"`macval(statslabelsend)'"'
         if `hasrtfbrdr' & `rtfbrdron' {
-            local begin: subinstr local rtfbeginbak "@rtfrowdefbrdr" `"`rtfrowdef'"'
+            StableSubinstr begin `"`macval(rtfbeginbak)'"' "@rtfrowdefbrdr" `"`rtfrowdef'"'
             local rtfbrdron 0
         }
     }
@@ -1962,6 +1960,19 @@ program MoreOptions
 // from the first syntax call
 // MoreOptions is intended for options without arguments only
     local theoptions ///
+        NOOMITted OMITted ///
+        NOBASElevels BASElevels ///
+        NOEFORM eform ///
+        NOMargin Margin ///
+        NODIscrete ///
+        NODROPPED dropped ///
+        NOSTARDetach STARDetach ///
+        NOABbrev ABbrev ///
+        NOUNStack UNStack ///
+        NOLZ lz ///
+        NOLabel Label ///
+        NOLEgend LEgend ///
+        NONUMbers NUMbers ///
         NOReplace Replace ///
         NOAppend Append ///
         NOTYpe TYpe ///
@@ -2326,7 +2337,8 @@ program _estout_getres, rclass
     syntax, names(str) [ coefs(str asis) stats(str asis) equations(str) ///
         rename(str asis) margin(str asis) meqs(str asis) ///
         dropped(int 0) level(int 95) ///
-        transform(str asis)  transformpattern(str asis) ]
+        transform(str asis)  transformpattern(str asis) ///
+        omitted baselevels ]
     // coefs: coef "coef O/1 #" `"coef O/1 "rowname""' etc...
 
     tempname bc bbc bs bbs st
@@ -2463,6 +2475,10 @@ program _estout_getres, rclass
 
         if `rc' {
             exit `rc'
+        }
+        
+        if (c(stata_version)>=11) & (`hasbc'>0) {
+            mata: estout_omitted_and_base() // sets local hasbc
         }
 
         if `hasbc'>0 {
@@ -2618,7 +2634,8 @@ program MatchNames, rclass
     return local eqnames  `eqnames'
 end
 
-// Source: est_table.ado  version 1.1.4  09oct2008  (unmodified)
+// Source: est_table.ado  version 1.1.4  09oct2008
+// 02oct2013: added -version 11: matrix roweq- to support new eqnames
 program AdjustRowEq
     args b ni nmodel eqspec eqnames
 
@@ -2688,7 +2705,12 @@ program AdjustRowEq
         assert "`term'" == ","
         gettoken term eqspec: eqspec , parse(",")
     }
-    matrix roweq `b' = `beqn'
+    if c(stata_version)>=11 { // similar to RenameCoefs
+        version 11: matrix roweq `b' = `beqn'
+    }
+    else {
+        matrix roweq `b' = `beqn'
+    }
 end
 
 // Source: est_table.ado  version 1.1.4  09oct2008  (modified)
@@ -3056,12 +3078,22 @@ program ComputeCoefs_p
     args bc j
     local r = rowsof(`bc')
     local df_r = e(df_r)
+    if `"`e(mi)'"'=="mi" { // get df_mi
+        capt confirm matrix e(df_mi)
+        if _rc==0 {
+            tempname dfmi
+            matrix `dfmi' = e(df_mi)
+        }
+    }
     forv i = 1/`r' {
             local b   `bc'[`i',1]
             local var `bc'[`i',2]
             local res `bc'[`i',`j']
             if `b'>=.        mat `res' = `b'
             else if `var'>=. mat `res' = `var'
+            else if "`dfmi'"!="" {
+                mat `res' = ttail(`dfmi'[1,`i'],abs(`b'/sqrt(`var'))) * 2
+            }
             else if `df_r'<. mat `res' = ttail(`df_r',abs(`b'/sqrt(`var'))) * 2
             else             mat `res' = (1 - norm(abs(`b'/sqrt(`var')))) * 2
     }
@@ -3081,12 +3113,23 @@ program ComputeCoefs_ci
     args sign bc j level
     local r = rowsof(`bc')
     local df_r = e(df_r)
+    if `"`e(mi)'"'=="mi" { // get df_mi
+        capt confirm matrix e(df_mi)
+        if _rc==0 {
+            tempname dfmi
+            matrix `dfmi' = e(df_mi)
+        }
+    }
     forv i = 1/`r' {
             local b   `bc'[`i',1]
             local var `bc'[`i',2]
             local res `bc'[`i',`j']
             if `b'>=.        mat `res' = `b'
             else if `var'>=. mat `res' = `var'
+            else if "`dfmi'"!="" {
+                mat `res' = `b' `sign' ///
+                    invttail(`dfmi'[1,`i'],(100-`level')/200) * sqrt(`var')
+            }
             else if `df_r'<. mat `res' = `b' `sign' ///
                                 invttail(`df_r',(100-`level')/200) * sqrt(`var')
             else             mat `res' = `b' `sign' ///
@@ -3336,8 +3379,7 @@ program InsertAtVariables
         if `type'!=2  local atvars `atvars' title note discrete starlegend
     }
     foreach atvar of local atvars {
-        capt local value: subinstr local value "@`atvar'" `"`macval(`atvar')'"', all
-         // note: returns error if length of <to> is more than 502 characters
+        StableSubinstr value `"`macval(value)'"' "@`atvar'" `"`macval(`atvar')'"' all
     }
     c_local value `"`macval(value)'"'
 end
@@ -4388,6 +4430,29 @@ prog ParseLabCol2
     c_local labcol2width `"`width'"'
 end
 
+prog StableSubinstr
+    // use mata in stata>=9 because -:subinstr- breaks if length of <to>
+    // is more than 502 characters
+    args new old from to all word
+    if c(stata_version)>=9 {
+        if "`all'"=="all"   local cnt .
+        else if "`all'"=="" local cnt 1
+        else error 198
+        if "`word'"=="" local word str
+        else if "`word'"!="word" error 198
+        mata: st_local("tmp", subin`word'(st_local("old"), ///
+                   st_local("from"), st_local("to"), `cnt'))
+        c_local `new' `"`macval(tmp)'"'
+    }
+    else {
+        capt local tmp: subinstr local old `"`macval(from)'"' ///
+            `"`macval(to)'"', `all' `word'
+        if _rc==0 {
+             c_local `new' `"`macval(tmp)'"'
+        }
+    }
+end
+
 prog MakeMMDdef
     args varw labcol2 labcol2w modelw starsrow stardetachon starw
     if "`varw'"=="0"     | "`varw'"==""     local varw 1
@@ -4492,4 +4557,97 @@ program ParseMatrixOpt
     c_local name `"`namelist'"'
     c_local fmt `"`fmt'"'
     c_local transpose `"`transpose'"'
+end
+
+program CompileVarl
+    syntax [, vname(str asis) interaction(str) ]
+    gettoken vi vname: vname, parse("#")
+    while (`"`vi'"') !="" {
+        local xlabi
+        if `"`vi'"'=="#" {
+            local xlabi `"`macval(interaction)'"'
+        }
+        else if strpos(`"`vi'"',".")==0 {
+            capt confirm variable `vi', exact
+            if _rc==0 {
+                local xlabi: var lab `vi'
+            }
+        }
+        else {
+            gettoken li vii : vi, parse(".")
+            gettoken dot vii : vii, parse(".")
+            capt confirm variable `vii', exact
+            if _rc==0 {
+                capt confirm number `li'
+                if _rc {
+                    local xlabi: var lab `vii'
+                    if (`"`macval(xlabi)'"'=="") local xlabi `"`vii'"'
+                    if substr(`"`li'"',1,1)=="c" ///
+                                         local li = substr(`"`li'"',2,.)
+                    if (`"`li'"'!="")    local xlabi `"`li'.`macval(xlabi)'"'
+                }
+                else {
+                    local viilab : value label `vii'
+                    if `"`viilab'"'!="" {
+                        local xlabi: label `viilab' `li'
+                    }
+                    else {
+                        local viilab: var lab `vii'
+                        if (`"`macval(viilab)'"'=="") local viilab `"`vii'"'
+                        local xlabi `"`macval(viilab)'=`li'"'
+                    }
+                }
+            }
+        }
+        if `"`macval(xlabi)'"'=="" {
+            local xlabi `"`vi'"'
+        }
+        local xlab `"`macval(xlab)'`macval(xlabi)'"'
+        gettoken vi vname: vname, parse("#")
+    }
+    c_local varl `"`macval(xlab)'"'
+end
+
+if c(stata_version)<11 exit
+version 11
+mata:
+mata set matastrict on
+
+void estout_omitted_and_base()
+{
+    real colvector      p
+    real matrix         bc
+    string matrix       rstripe, cstripe
+    string colvector    coefnm
+    
+    bc = st_matrix(st_local("bc"))
+    rstripe = st_matrixrowstripe(st_local("bc"))
+    cstripe = st_matrixcolstripe(st_local("bc"))
+    coefnm = rstripe[,2]
+    //coefnm = subinstr(coefnm,"bn.", ".")                              // *bn.
+    //coefnm = subinstr(coefnm,"bno.", "o.")                            // *bno.
+    p = J(rows(bc), 1, 1)
+    if (st_local("omitted")=="") {
+        p = p :* (!strmatch(coefnm, "*o.*"))
+    }
+    else {
+        coefnm = substr(coefnm, 1:+2*(substr(coefnm, 1, 2):=="o."), .)  // o.
+        coefnm = subinstr(coefnm, "o.", ".")                            // *o.
+    }
+    if (st_local("baselevels")=="") {
+        p = p :* (!strmatch(coefnm, "*b.*"))
+    }
+    else {
+        coefnm = subinstr(coefnm, "b.", ".")                            // *b.
+    }
+    if (any(p)) {
+        st_matrix(st_local("bc"), select(bc, p))
+        st_matrixrowstripe(st_local("bc"), select((rstripe[,1], coefnm), p))
+        st_matrixcolstripe(st_local("bc"), cstripe)
+        st_local("hasbc", "1")
+    }
+    else {
+        st_local("hasbc", "0")
+    }
+}
 end

@@ -1,4 +1,4 @@
-*! version 1.1.5  08oct2009  Ben Jann
+*! version 1.1.6  06aug2010  Ben Jann
 * 1. estpost
 * 2. estpost_summarize
 * 3. estpost_tabulate
@@ -789,7 +789,7 @@ prog estpost_ttest, eclass
 
     // post results
     local V
-    if c(stata_version)<9 { // b and V required in Stata 8
+    if c(stata_version)<9 { // V required in Stata 8
         tempname V
         mat `V' = diag(vecdiag(`se'' * `se'))
     }
@@ -925,8 +925,8 @@ prog estpost_correlate, eclass
 
     // post results
     local V
-    if c(stata_version)<9 { // b and V required in Stata 8
-        tempname b
+    if c(stata_version)<9 { // V required in Stata 8
+        tempname V
         mat `V' = `b'' * `b' * 0
     }
     if "`esample'"!="" local esample esample(`touse')
@@ -1134,7 +1134,7 @@ prog estpost_ci, eclass
 
     // post results
     local V
-    if c(stata_version)<9 { // b and V required in Stata 8
+    if c(stata_version)<9 { // V required in Stata 8
         tempname V
         mat `V' = diag(vecdiag(`se'' * `se'))
     }
@@ -1230,7 +1230,7 @@ prog estpost_prtest, eclass
 
     // post results
     local V
-    if c(stata_version)<9 { // b and V required in Stata 8
+    if c(stata_version)<9 { // V required in Stata 8
         tempname V
         mat `V' = diag(vecdiag(`se'' * `se'))
     }
